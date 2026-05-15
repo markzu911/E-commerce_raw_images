@@ -1,5 +1,5 @@
 
-const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'http://aibigtree.com').trim().replace(/\/$/, '');
+const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'https://aibigtree.com').trim().replace(/\/$/, '');
 
 async function readJsonResponse(res: Response) {
   let text = '';
@@ -24,11 +24,11 @@ async function readJsonResponse(res: Response) {
   return data;
 }
 
-async function safeFetch(url: string, options: RequestInit) {
+async function safeFetch(url: string, options: RequestInit, timeoutMs = 60000) {
   try {
     const res = await fetch(url, {
       ...options,
-      signal: AbortSignal.timeout(20000), // Increased timeout to 20s
+      signal: AbortSignal.timeout(timeoutMs),
       headers: {
         'User-Agent': 'AI-Studio-Applet',
         ...options.headers,
@@ -38,7 +38,7 @@ async function safeFetch(url: string, options: RequestInit) {
   } catch (err: any) {
     console.error(`Fetch error for ${url}:`, err);
     let errorDetail = err.message;
-    if (err.name === 'TimeoutError') errorDetail = 'Connection timeout (20s)';
+    if (err.name === 'TimeoutError') errorDetail = `Connection timeout (${timeoutMs / 1000}s)`;
     if (err.cause) errorDetail += ` (Cause: ${err.cause})`;
     throw new Error(`fetch system error [${url}]: ${errorDetail}`);
   }
@@ -154,7 +154,7 @@ export async function saveResultImageToSaas({
     method: token.method || 'PUT',
     headers: token.headers,
     body: imageBuffer as any
-  });
+  }, 120000); // 120s for image upload
   
   if (!uploadRes.ok) {
     const errorText = await uploadRes.text().catch(() => 'Unknown OSS error');
