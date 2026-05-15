@@ -1,8 +1,14 @@
 
-const SAAS_ORIGIN = process.env.SAAS_ORIGIN || 'https://aibigtree.com';
+const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'https://aibigtree.com').replace(/\/$/, '');
 
 async function readJsonResponse(res: Response) {
-  const text = await res.text();
+  let text = '';
+  try {
+    text = await res.text();
+  } catch (e) {
+    // Some responses might not even allow text()
+  }
+  
   let data: any = {};
   try {
     data = text ? JSON.parse(text) : {};
@@ -11,29 +17,34 @@ async function readJsonResponse(res: Response) {
   }
 
   if (!res.ok || data.success === false) {
-    throw new Error(data.error || data.message || `请求失败: ${res.status}`);
+    const msg = data.error || data.message || `请求失败: ${res.status} ${res.statusText}`;
+    throw new Error(msg);
   }
 
   return data;
 }
 
+async function safeFetch(url: string, options: RequestInit) {
+  try {
+    const res = await fetch(url, options);
+    return res;
+  } catch (err: any) {
+    console.error(`Fetch error for ${url}:`, err);
+    throw new Error(`fetch failed: ${err.message}`);
+  }
+}
+
 export async function launchTool({ userId, toolId }: { userId: string, toolId: string }) {
-  console.log(`Calling launch: ${SAAS_ORIGIN}/api/tool/launch with userId=${userId}, toolId=${toolId}`);
-  const res = await fetch(`${SAAS_ORIGIN}/api/tool/launch`, {
+  const res = await safeFetch(`${SAAS_ORIGIN}/api/tool/launch`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, toolId })
   });
-  if (!res.ok) {
-      console.error(`Launch failed: ${res.status} ${res.statusText}`);
-      const text = await res.text();
-      console.error(`Launch response: ${text}`);
-  }
   return readJsonResponse(res);
 }
 
 export async function verifyBeforeGenerate({ userId, toolId }: { userId: string, toolId: string }) {
-  const res = await fetch(`${SAAS_ORIGIN}/api/tool/verify`, {
+  const res = await safeFetch(`${SAAS_ORIGIN}/api/tool/verify`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, toolId })
@@ -42,7 +53,7 @@ export async function verifyBeforeGenerate({ userId, toolId }: { userId: string,
 }
 
 export async function consumeIntegral({ userId, toolId }: { userId: string, toolId: string }) {
-  const res = await fetch(`${SAAS_ORIGIN}/api/tool/consume`, {
+  const res = await safeFetch(`${SAAS_ORIGIN}/api/tool/consume`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, toolId })
@@ -63,7 +74,7 @@ export async function getDirectUploadToken({
   fileName: string,
   fileSize: number
 }) {
-  const res = await fetch(`${SAAS_ORIGIN}/api/upload/direct-token`, {
+  const res = await safeFetch(`${SAAS_ORIGIN}/api/upload/direct-token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -89,7 +100,7 @@ export async function commitUpload({
   objectKey: string,
   fileSize: number
 }) {
-  const res = await fetch(`${SAAS_ORIGIN}/api/upload/commit`, {
+  const res = await safeFetch(`${SAAS_ORIGIN}/api/upload/commit`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -129,14 +140,15 @@ export async function saveResultImageToSaas({
   });
 
   // 3. Upload to OSS
-  const uploadRes = await fetch(token.uploadUrl, {
+  const uploadRes = await safeFetch(token.uploadUrl, {
     method: token.method || 'PUT',
     headers: token.headers,
     body: imageBuffer as any
   });
   
   if (!uploadRes.ok) {
-    throw new Error(`OSS 上传失败: ${uploadRes.status}`);
+    const errorText = await uploadRes.text().catch(() => 'Unknown OSS error');
+    throw new Error(`OSS 上传失败: ${uploadRes.status} ${errorText}`);
   }
 
   // 4. Commit

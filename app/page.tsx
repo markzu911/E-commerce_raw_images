@@ -54,14 +54,18 @@ export default function Page() {
   ];
 
   useEffect(() => {
-    setMounted(true);
+    requestAnimationFrame(() => {
+      setMounted(true);
+    });
     
     // 1. Get from URL params as fallback
     const params = new URLSearchParams(window.location.search);
     const uId = params.get('userId');
     const tId = params.get('toolId');
-    if (uId) setUserId(uId);
-    if (tId) setToolId(tId);
+    requestAnimationFrame(() => {
+      if (uId) setUserId(uId);
+      if (tId) setToolId(tId);
+    });
 
     // 2. Listen for SAAS_INIT message
     const handleMessage = async (event: MessageEvent) => {

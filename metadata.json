@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "电商 AI 生图工具 (E-commerce AI Image Pro)",
+  "description": "基于 Gemini 3.1 Flash Image Preview 的电商服装生图专家，支持主图、详情图、卖点图与场景图的高精度生成，完美集成 SaaS 积分系统与双向 OSS 存证流程。",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["image_generation", "image_analysis"]
 }
