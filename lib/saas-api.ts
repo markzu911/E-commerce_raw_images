@@ -1,23 +1,23 @@
 
-const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'https://aibigtree.com').replace(/\/$/, '');
+const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'http://aibigtree.com').trim().replace(/\/$/, '');
 
 async function readJsonResponse(res: Response) {
   let text = '';
   try {
     text = await res.text();
   } catch (e) {
-    // Some responses might not even allow text()
+    console.error('Failed to read response text', e);
   }
   
   let data: any = {};
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
-    data = { error: text.slice(0, 300) };
+    data = { error: text.slice(0, 300) || 'Invalid JSON response' };
   }
 
   if (!res.ok || data.success === false) {
-    const msg = data.error || data.message || `请求失败: ${res.status} ${res.statusText}`;
+    const msg = data.error || data.message || `Request failed with status ${res.status}: ${res.statusText}`;
     throw new Error(msg);
   }
 
@@ -26,11 +26,21 @@ async function readJsonResponse(res: Response) {
 
 async function safeFetch(url: string, options: RequestInit) {
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(url, {
+      ...options,
+      signal: AbortSignal.timeout(20000), // Increased timeout to 20s
+      headers: {
+        'User-Agent': 'AI-Studio-Applet',
+        ...options.headers,
+      },
+    });
     return res;
   } catch (err: any) {
     console.error(`Fetch error for ${url}:`, err);
-    throw new Error(`fetch failed: ${err.message}`);
+    let errorDetail = err.message;
+    if (err.name === 'TimeoutError') errorDetail = 'Connection timeout (20s)';
+    if (err.cause) errorDetail += ` (Cause: ${err.cause})`;
+    throw new Error(`fetch system error [${url}]: ${errorDetail}`);
   }
 }
 
@@ -160,7 +170,7 @@ export async function saveResultImageToSaas({
   });
 
   if (!commit.savedToRecords) {
-    throw new Error(commit.error || '图片入库失败');
+    throw new Error(commit.error || commit.message || '图片入库失败');
   }
 
   return commit.image || { recordId: commit.recordId, url: commit.url, fileName: commit.fileName };

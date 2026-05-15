@@ -53,49 +53,52 @@ export default function Page() {
     { id: 'scene', label: '场景图' }
   ];
 
+  const launchCalled = useRef(false);
+
   useEffect(() => {
     requestAnimationFrame(() => {
       setMounted(true);
     });
     
-    // 1. Get from URL params as fallback
     const params = new URLSearchParams(window.location.search);
     const uId = params.get('userId');
     const tId = params.get('toolId');
-    requestAnimationFrame(() => {
-      if (uId) setUserId(uId);
-      if (tId) setToolId(tId);
-    });
+    
+    if (uId) setUserId(uId);
+    if (tId) setToolId(tId);
+
+    const callLaunch = async (uid: string, tid: string) => {
+      if (launchCalled.current) return;
+      launchCalled.current = true;
+      try {
+        await fetch('/api/launch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: uid, toolId: tid })
+        });
+      } catch (err) {
+        console.error('Launch failed', err);
+        launchCalled.current = false;
+      }
+    };
 
     // 2. Listen for SAAS_INIT message
     const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'SAAS_INIT') {
-        const uId = event.data.userId;
-        const tId = event.data.toolId;
-        if (uId) setUserId(uId);
-        if (tId) setToolId(tId);
+        const msgUserId = event.data.userId;
+        const msgToolId = event.data.toolId;
+        if (msgUserId) setUserId(msgUserId);
+        if (msgToolId) setToolId(msgToolId);
         
-        if (uId && tId) {
-          try {
-            await fetch('/api/launch', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: uId, toolId: tId })
-            });
-          } catch (err) {
-            console.error('Launch failed', err);
-          }
+        if (msgUserId && msgToolId) {
+          callLaunch(msgUserId, msgToolId);
         }
       }
     };
 
     // 3. If already have uId/tId from URL, call launch immediately
     if (uId && tId) {
-      fetch('/api/launch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: uId, toolId: tId })
-      }).catch(err => console.error('Launch from URL failed', err));
+      callLaunch(uId, tId);
     }
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
