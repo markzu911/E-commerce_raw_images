@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenAI, Type, ThinkingLevel } from '@google/genai';
 import { AnalysisData, PromptConfig } from '@/types';
 
 function getGeminiClient() {
@@ -43,7 +43,7 @@ export async function analyzeImageServer(imageBase64: string, type: string): Pro
   const typeDesc = typeMap[type] || '电商图片';
 
   const responsePromise = ai.models.generateContent({
-    model: 'gemini-3.1-flash-image-preview',
+    model: 'gemini-3-flash-preview',
     contents: {
       parts: [
         {
@@ -72,6 +72,7 @@ export async function analyzeImageServer(imageBase64: string, type: string): Pro
       ]
     },
     config: {
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
@@ -220,6 +221,7 @@ export async function generateImageServer(
       parts
     },
     config: {
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
       imageConfig: {
         aspectRatio: '3:4',
       }
@@ -265,6 +267,7 @@ export async function generateCustomImageServer(
       parts
     },
     config: {
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
       imageConfig: {
         aspectRatio: '3:4',
       }

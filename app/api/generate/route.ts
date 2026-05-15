@@ -31,13 +31,14 @@ export async function POST(req: NextRequest) {
       return `data:${mime};base64,${normalized.toString('base64')}`;
     };
 
-    const imageUrlBase64 = await processImg(params.imageUrlBase64);
-    const modelUrlBase64 = await processImg(params.modelUrlBase64);
-    const sceneUrlBase64 = await processImg(params.sceneUrlBase64);
-    const referenceImageBase64 = await processImg(params.referenceImageBase64);
-
-    // 1. Verify integral (Section 2.B - Just verify, don't consume yet)
-    await verifyBeforeGenerate({ userId, toolId });
+    // 1. Parallelize input normalization and verification
+    const [imageUrlBase64, modelUrlBase64, sceneUrlBase64, referenceImageBase64] = await Promise.all([
+      processImg(params.imageUrlBase64),
+      processImg(params.modelUrlBase64),
+      processImg(params.sceneUrlBase64),
+      processImg(params.referenceImageBase64),
+      verifyBeforeGenerate({ userId, toolId })
+    ]);
 
     // 2. Generate AI Image
     let imageBuffer: Buffer;
