@@ -9,7 +9,6 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await launchTool({ userId, toolId });
-    console.log('[API/Launch] Using SAAS_ORIGIN:', process.env.SAAS_ORIGIN || 'default');
     console.log('[API/Launch] Success for:', userId);
     return NextResponse.json({ success: true, data });
   } catch (error: any) {
