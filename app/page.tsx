@@ -58,6 +58,30 @@ export default function Page() {
 
   const launchCalled = useRef(false);
 
+  const callLaunch = useCallback(async (uid: string, tid: string, force = false) => {
+    if (launchCalled.current && !force) return;
+    launchCalled.current = true;
+    setLaunchError('');
+    try {
+      const res = await fetch('/api/launch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: uid, toolId: tid })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUserData(data.data.user);
+        setToolData(data.data.tool);
+      } else {
+        setLaunchError(data.error || '身份校验失败');
+      }
+    } catch (err: any) {
+      console.error('Launch failed', err);
+      setLaunchError(err.message || '加载用户信息失败');
+      if (!force) launchCalled.current = false;
+    }
+  }, []);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const uId = params.get('userId');
@@ -67,33 +91,11 @@ export default function Page() {
       setMounted(true);
       if (uId) setUserId(uId);
       if (tId) setToolId(tId);
+      if (uId && tId) {
+        callLaunch(uId, tId);
+      }
     });
 
-    const callLaunch = async (uid: string, tid: string) => {
-      if (launchCalled.current) return;
-      launchCalled.current = true;
-      setLaunchError('');
-      try {
-        const res = await fetch('/api/launch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: uid, toolId: tid })
-        });
-        const data = await res.json();
-        if (data.success) {
-          setUserData(data.data.user);
-          setToolData(data.data.tool);
-        } else {
-          setLaunchError(data.error || '身份校验失败');
-        }
-      } catch (err: any) {
-        console.error('Launch failed', err);
-        setLaunchError(err.message || '加载用户信息失败');
-        launchCalled.current = false;
-      }
-    };
-
-    // 2. Listen for SAAS_INIT message
     const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'SAAS_INIT') {
         const msgUserId = event.data.userId;
@@ -107,13 +109,9 @@ export default function Page() {
       }
     };
 
-    // 3. If already have uId/tId from URL, call launch immediately
-    if (uId && tId) {
-      callLaunch(uId, tId);
-    }
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [callLaunch]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
@@ -196,6 +194,8 @@ export default function Page() {
         toolId
       );
       setGeneratedImages(prev => ({ ...prev, [selectedType]: imageUrl }));
+      // Refresh user integral
+      callLaunch(userId, toolId, true);
     } catch (e: any) {
       console.error(`Failed to generate ${selectedType}`, e);
       alert(`生成失败: ${e.message}`);
@@ -224,6 +224,8 @@ export default function Page() {
     try {
       const { imageUrl } = await generateCustomImage(customPrompt, imageBase64 || null, userId, toolId);
       setCustomResult(imageUrl);
+      // Refresh user integral
+      callLaunch(userId, toolId, true);
     } catch (e: any) {
       console.error('Failed to generate image', e);
       alert(`生成失败: ${e.message}`);
