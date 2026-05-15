@@ -56,16 +56,15 @@ export default function Page() {
   const launchCalled = useRef(false);
 
   useEffect(() => {
-    requestAnimationFrame(() => {
-      setMounted(true);
-    });
-    
     const params = new URLSearchParams(window.location.search);
     const uId = params.get('userId');
     const tId = params.get('toolId');
     
-    if (uId) setUserId(uId);
-    if (tId) setToolId(tId);
+    requestAnimationFrame(() => {
+      setMounted(true);
+      if (uId) setUserId(uId);
+      if (tId) setToolId(tId);
+    });
 
     const callLaunch = async (uid: string, tid: string) => {
       if (launchCalled.current) return;

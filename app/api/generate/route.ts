@@ -48,9 +48,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      image: savedImage, // Contains url, recordId, etc.
-      // For frontend immediate display, we can also return base64 if needed, 
-      // but SAAS URL is better.
+      images: [savedImage], // Standard array return as per spec section 4
+      image: savedImage, // Keep legacy for backwards compatibility with my gemini.ts
       imageUrl: savedImage.url 
     });
 

@@ -332,8 +332,8 @@ export async function POST(request) {
 
 注意：
 
-- `GEMINI_API_KEY` 只能放在工具后端运行环境的 `.env` 或部署平台环境变量里。
-- 不要使用 `NEXT_PUBLIC_GEMINI_API_KEY` 这类会暴露到浏览器的变量。
+- `GEMINI_API_KEY` 或 `NEXT_PUBLIC_GEMINI_API_KEY` 只能放在工具后端运行环境的 `.env` 或部署平台环境变量里（AI Studio Secrets 面板）。
+- 不要使用 `NEXT_PUBLIC_GEMINI_API_KEY` 这类会暴露到浏览器的变量（在 AI Studio 部署环境我们会从后端读取此变量，请优先保证 Secrets 面板已配置）。
 - 不要让浏览器直接请求 Gemini 官方接口。
 - 不要把 `GEMINI_API_KEY` 写进前端源码、localStorage、URL 参数或请求 body。
 
