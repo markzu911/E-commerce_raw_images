@@ -38,6 +38,26 @@ async function resizeImage(base64: string, maxWidth = 1024, maxHeight = 1024): P
   });
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 120000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error: any) {
+    clearTimeout(id);
+    if (error.name === 'AbortError') {
+      throw new Error('请求超时 (120s): 服务器响应时间过长，请稍后重试。');
+    }
+    throw error;
+  }
+}
+
 /**
  * Analyzes the given image base64 using our server-side API.
  */
@@ -52,7 +72,7 @@ export async function analyzeImage(imageBase64: string, type: string): Promise<A
     }
   }
 
-  const res = await fetch('/api/analyze', {
+  const res = await fetchWithTimeout('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ imageBase64: processedBase64, type })
@@ -93,7 +113,7 @@ export async function generateImage(
     sceneUrlBase64 ? resizeImage(sceneUrlBase64) : null
   ]);
 
-  const res = await fetch('/api/generate', {
+  const res = await fetchWithTimeout('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -139,7 +159,7 @@ export async function generateCustomImage(
 ): Promise<{ imageUrl: string; recordId: string }> {
   const processedRef = referenceImageBase64 ? await resizeImage(referenceImageBase64) : null;
 
-  const res = await fetch('/api/generate', {
+  const res = await fetchWithTimeout('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

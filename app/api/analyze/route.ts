@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { analyzeImageServer } from '@/lib/gemini-server';
 import { normalizeInputImage } from '@/lib/image-utils';
 
+export const runtime = 'nodejs';
 export const maxDuration = 120;
 
 const MAX_INPUT_SIZE = 15 * 1024 * 1024; // 15MB

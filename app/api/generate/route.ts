@@ -4,6 +4,7 @@ import { generateImageServer, generateCustomImageServer } from '@/lib/gemini-ser
 import { verifyBeforeGenerate, saveResultImageToSaas } from '@/lib/saas-api';
 import { normalizeImage, normalizeInputImage } from '@/lib/image-utils';
 
+export const runtime = 'nodejs';
 export const maxDuration = 120;
 
 const MAX_INPUT_SIZE = 15 * 1024 * 1024; // 15MB

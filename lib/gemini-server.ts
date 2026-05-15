@@ -10,6 +10,24 @@ function getGeminiClient() {
   return new GoogleGenAI({ apiKey });
 }
 
+/**
+ * Wraps a promise with a timeout using Promise.race.
+ */
+async function withTimeout<T>(promise: Promise<T>, timeoutMs = 120000, message = 'AI 处理超时(120s): 模型处理耗时过长...'): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timer!);
+    return result;
+  } catch (error) {
+    clearTimeout(timer!);
+    throw error;
+  }
+}
+
 export async function analyzeImageServer(imageBase64: string, type: string): Promise<AnalysisData> {
   const ai = getGeminiClient();
   
@@ -24,7 +42,7 @@ export async function analyzeImageServer(imageBase64: string, type: string): Pro
   };
   const typeDesc = typeMap[type] || '电商图片';
 
-  const response = await ai.models.generateContent({
+  const responsePromise = ai.models.generateContent({
     model: 'gemini-3.1-flash-image-preview',
     contents: {
       parts: [
@@ -81,8 +99,10 @@ export async function analyzeImageServer(imageBase64: string, type: string): Pro
       }
     }
   });
+  
+  const result = await withTimeout(responsePromise);
 
-  return JSON.parse(response.text!) as AnalysisData;
+  return JSON.parse(result.text!) as AnalysisData;
 }
 
 function buildPrompt(
@@ -193,8 +213,8 @@ export async function generateImageServer(
   }
   
   parts.push({ text: prompt });
-
-  const response = await ai.models.generateContent({
+ 
+  const responsePromise = ai.models.generateContent({
     model: 'gemini-3.1-flash-image-preview',
     contents: {
       parts
@@ -205,6 +225,8 @@ export async function generateImageServer(
       }
     }
   });
+
+  const response = await withTimeout(responsePromise);
 
   // Extract base64 image from response
   for (const part of response.candidates?.[0]?.content?.parts || []) {
@@ -236,8 +258,8 @@ export async function generateCustomImageServer(
     prompt += `\nPlease refer to the uploaded image for style and elements.`;
   }
   parts.push({ text: prompt });
-
-  const response = await ai.models.generateContent({
+  
+  const responsePromise = ai.models.generateContent({
     model: 'gemini-3.1-flash-image-preview',
     contents: {
       parts
@@ -248,6 +270,8 @@ export async function generateCustomImageServer(
       }
     }
   });
+
+  const response = await withTimeout(responsePromise);
 
   for (const part of response.candidates?.[0]?.content?.parts || []) {
     if (part.inlineData?.data) {
