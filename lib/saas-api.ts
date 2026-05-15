@@ -45,11 +45,14 @@ async function safeFetch(url: string, options: RequestInit, timeoutMs = 60000) {
 }
 
 export async function launchTool({ userId, toolId }: { userId: string, toolId: string }) {
-  const res = await safeFetch(`${SAAS_ORIGIN}/api/tool/launch`, {
+  const url = `${SAAS_ORIGIN}/api/tool/launch`;
+  console.log(`[SAAS] Launching tool: ${userId}/${toolId} via ${url}`);
+  const res = await safeFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, toolId })
   });
+  console.log(`[SAAS] Launch response status: ${res.status} ${res.statusText}`);
   return readJsonResponse(res);
 }
 

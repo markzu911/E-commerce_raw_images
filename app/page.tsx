@@ -45,6 +45,9 @@ export default function Page() {
 
   const [userId, setUserId] = useState<string>('');
   const [toolId, setToolId] = useState<string>('');
+  const [userData, setUserData] = useState<any>(null);
+  const [toolData, setToolData] = useState<any>(null);
+  const [launchError, setLaunchError] = useState<string>('');
 
   const ALL_TYPES = [
     { id: 'main', label: '商品主图' },
@@ -69,14 +72,23 @@ export default function Page() {
     const callLaunch = async (uid: string, tid: string) => {
       if (launchCalled.current) return;
       launchCalled.current = true;
+      setLaunchError('');
       try {
-        await fetch('/api/launch', {
+        const res = await fetch('/api/launch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: uid, toolId: tid })
         });
-      } catch (err) {
+        const data = await res.json();
+        if (data.success) {
+          setUserData(data.data.user);
+          setToolData(data.data.tool);
+        } else {
+          setLaunchError(data.error || '身份校验失败');
+        }
+      } catch (err: any) {
         console.error('Launch failed', err);
+        setLaunchError(err.message || '加载用户信息失败');
         launchCalled.current = false;
       }
     };
@@ -236,6 +248,7 @@ export default function Page() {
              </TabsList>
           </Tabs>
         </div>
+        
         <div className="flex items-center justify-center gap-4 text-sm font-medium w-1/3 hidden md:flex">
           {activeMode === 'smart' && (
             <>
@@ -249,7 +262,15 @@ export default function Page() {
             </>
           )}
         </div>
-        <div className="flex items-center justify-end gap-2 w-1/3 min-w-0">
+
+        <div className="flex items-center justify-end gap-3 w-1/3 min-w-0">
+          {userData && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-semibold whitespace-nowrap">
+              <span className="text-muted-foreground">{userData.name}</span>
+              <div className="w-px h-3 bg-slate-300 mx-1" />
+              <span className="text-primary">{userData.integral} 积分</span>
+            </div>
+          )}
           {activeMode === 'smart' && step !== 'upload' && (
             <>
               {step === 'select' && (
@@ -273,6 +294,16 @@ export default function Page() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6 mt-6">
+        {launchError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-bold">加载错误:</span>
+              <span>{launchError}</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => window.location.reload()} className="text-red-600 hover:bg-red-100">刷新重试</Button>
+          </div>
+        )}
+
         {activeMode === 'smart' && (
           <>
             {step === 'upload' && (

@@ -9,9 +9,10 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await launchTool({ userId, toolId });
+    console.log('[API/Launch] Success for:', userId);
     return NextResponse.json({ success: true, data });
   } catch (error: any) {
-    console.error('Launch error details in route:', error);
+    console.error('[API/Launch] Error:', error.message);
     // Attempt to parse error details if it came from the SaaS call
     let errorMsg = error.message;
     try {

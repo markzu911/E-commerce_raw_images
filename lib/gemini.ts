@@ -1,19 +1,76 @@
 import { AnalysisData, PromptConfig } from '@/types';
 
 /**
+ * Resizes an image base64 on client side ensuring it's not too large for the API limits.
+ */
+async function resizeImage(base64: string, maxWidth = 1024, maxHeight = 1024): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = base64;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = reject;
+  });
+}
+
+/**
  * Analyzes the given image base64 using our server-side API.
  */
 export async function analyzeImage(imageBase64: string, type: string): Promise<AnalysisData> {
+  // Resize if likely to exceed limit (arbitrary check on string length)
+  let processedBase64 = imageBase64;
+  if (imageBase64.length > 500000) {
+    try {
+      processedBase64 = await resizeImage(imageBase64);
+    } catch (e) {
+      console.warn('Failed to resize image on client:', e);
+    }
+  }
+
   const res = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ imageBase64, type })
+    body: JSON.stringify({ imageBase64: processedBase64, type })
   });
   
-  const data = await res.json();
-  if (!data.success) {
-    throw new Error(data.error || '分析失败');
+  if (!res.ok) {
+    const text = await res.text();
+    let errorMsg = '分析失败';
+    try {
+      const parsed = JSON.parse(text);
+      errorMsg = parsed.error || errorMsg;
+    } catch {
+      errorMsg = `请求错误 ${res.status}: ${text.slice(0, 100)}`;
+    }
+    throw new Error(errorMsg);
   }
+
+  const data = await res.json();
   return data.data;
 }
 
@@ -30,6 +87,12 @@ export async function generateImage(
   userId: string,
   toolId: string
 ): Promise<{ imageUrl: string; recordId: string }> {
+  const [main, model, scene] = await Promise.all([
+    resizeImage(imageUrlBase64),
+    modelUrlBase64 ? resizeImage(modelUrlBase64) : null,
+    sceneUrlBase64 ? resizeImage(sceneUrlBase64) : null
+  ]);
+
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -38,18 +101,27 @@ export async function generateImage(
       userId,
       toolId,
       type,
-      imageUrlBase64,
-      modelUrlBase64,
-      sceneUrlBase64,
+      imageUrlBase64: main,
+      modelUrlBase64: model,
+      sceneUrlBase64: scene,
       analysis,
       config
     })
   });
 
-  const data = await res.json();
-  if (!data.success) {
-    throw new Error(data.error || '生成失败');
+  if (!res.ok) {
+    const text = await res.text();
+    let errorMsg = '生成失败';
+    try {
+      const parsed = JSON.parse(text);
+      errorMsg = parsed.error || errorMsg;
+    } catch {
+      errorMsg = `请求错误 ${res.status}: ${text.slice(0, 100)}`;
+    }
+    throw new Error(errorMsg);
   }
+
+  const data = await res.json();
   return {
     imageUrl: data.imageUrl,
     recordId: data.image.recordId
@@ -65,6 +137,8 @@ export async function generateCustomImage(
   userId: string,
   toolId: string
 ): Promise<{ imageUrl: string; recordId: string }> {
+  const processedRef = referenceImageBase64 ? await resizeImage(referenceImageBase64) : null;
+
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -73,14 +147,23 @@ export async function generateCustomImage(
       userId,
       toolId,
       prompt,
-      referenceImageBase64
+      referenceImageBase64: processedRef
     })
   });
 
-  const data = await res.json();
-  if (!data.success) {
-    throw new Error(data.error || '生成失败');
+  if (!res.ok) {
+    const text = await res.text();
+    let errorMsg = '生成失败';
+    try {
+      const parsed = JSON.parse(text);
+      errorMsg = parsed.error || errorMsg;
+    } catch {
+      errorMsg = `请求错误 ${res.status}: ${text.slice(0, 100)}`;
+    }
+    throw new Error(errorMsg);
   }
+
+  const data = await res.json();
   return {
     imageUrl: data.imageUrl,
     recordId: data.image.recordId
