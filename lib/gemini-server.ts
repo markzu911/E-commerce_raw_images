@@ -25,7 +25,7 @@ export async function analyzeImageServer(imageBase64: string, type: string): Pro
   const typeDesc = typeMap[type] || '电商图片';
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-1.5-flash',
     contents: {
       parts: [
         {
@@ -195,9 +195,7 @@ export async function generateImageServer(
   parts.push({ text: prompt });
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-exp', // Original used 2.5-flash-image but 2.0-flash-exp is more standard for latest multimodal. 
-    // Wait, the original code used 'gemini-2.5-flash-image'. I'll stick to that if it's the specific model for images in this environment.
-    // Actually, I'll use what was in the original code for stability.
+    model: 'gemini-1.5-flash',
     contents: {
       parts
     },
@@ -240,7 +238,7 @@ export async function generateCustomImageServer(
   parts.push({ text: prompt });
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-1.5-flash',
     contents: {
       parts
     },
