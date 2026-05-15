@@ -1,5 +1,5 @@
 
-const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'https://aibigtree.com').trim().replace(/\/$/, '');
+const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'https://gemini-proxy.aibigtree.com').trim().replace(/\/$/, '');
 
 async function readJsonResponse(res: Response) {
   let text = '';
@@ -17,6 +17,7 @@ async function readJsonResponse(res: Response) {
   }
 
   if (!res.ok || data.success === false) {
+    console.error(`[SAAS] Error Response from ${res.url}: ${res.status} ${res.statusText}. Body: ${text.slice(0, 500)}`);
     const msg = data.error || data.message || `Request failed with status ${res.status}: ${res.statusText}`;
     throw new Error(msg);
   }
