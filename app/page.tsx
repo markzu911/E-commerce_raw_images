@@ -56,9 +56,12 @@ async function compressImage(base64: string, maxWidth = 1200, maxHeight = 1200):
 
 export default function Page() {
   const [step, setStep] = useState<Step>('upload');
-  const [imageBase64, setImageBase64] = useState<string>('');
+  const [imageBase64, setImageBase64] = useState<string>(''); // Product image for smart mode
   const [modelBase64, setModelBase64] = useState<string>('');
   const [sceneBase64, setSceneBase64] = useState<string>('');
+  const [customReferenceBase64, setCustomReferenceBase64] = useState<string>(''); // Reference for custom mode
+  
+  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error' | 'loading' | null, content: string }>({ type: null, content: '' });
   
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [config, setConfig] = useState<PromptConfig>({
@@ -96,7 +99,7 @@ export default function Page() {
     launchCalled.current = true;
     setLaunchError('');
     try {
-      const res = await fetch('/api/launch', {
+      const res = await fetch('/api/tool/launch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: uid, toolId: tid })
@@ -167,6 +170,7 @@ export default function Page() {
 
   const startAnalysis = async () => {
     setStep('analyzing');
+    setStatusMsg({ type: null, content: '' });
     try {
       const data = await analyzeImage(imageBase64, selectedType);
       setAnalysis(data);
@@ -186,7 +190,7 @@ export default function Page() {
       setStep('result');
     } catch (err: any) {
       console.error(err);
-      alert(`分析失败: ${err.message}`);
+      setStatusMsg({ type: 'error', content: `分析失败: ${err.message}` });
       setStep('upload');
     }
   };
@@ -216,11 +220,12 @@ export default function Page() {
   const handleGenerate = async () => {
     if (!analysis) return;
     if (!userId || !toolId) {
-      alert('缺少身份信息 (userId/toolId)，无法生成');
+      setStatusMsg({ type: 'error', content: '缺少身份信息 (userId/toolId)，无法生成' });
       return;
     }
     setStep('generating');
     setIsGenerating(true);
+    setStatusMsg({ type: 'loading', content: '正在生成并保存中...' });
 
     try {
       const { imageUrl } = await generateImage(
@@ -234,15 +239,18 @@ export default function Page() {
         toolId
       );
       setGeneratedImages(prev => ({ ...prev, [selectedType]: imageUrl }));
+      setStatusMsg({ type: 'success', content: '生成成功！' });
       // Refresh user integral
       callLaunch(userId, toolId, true);
     } catch (e: any) {
       console.error(`Failed to generate ${selectedType}`, e);
-      alert(`生成失败: ${e.message}`);
+      setStatusMsg({ type: 'error', content: `生成失败: ${e.message}` });
+      setStep('result');
     }
     
     setIsGenerating(false);
     setStep('done');
+    setTimeout(() => setStatusMsg({ type: null, content: '' }), 5000);
   };
 
   const handleCustomUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,7 +259,7 @@ export default function Page() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       const compressed = await compressImage(event.target?.result as string);
-      setImageBase64(compressed);
+      setCustomReferenceBase64(compressed);
     };
     reader.readAsDataURL(file);
   };
@@ -259,21 +267,24 @@ export default function Page() {
   const handleCustomGenerate = async () => {
     if (!customPrompt) return;
     if (!userId || !toolId) {
-      alert('缺少身份信息 (userId/toolId)，无法生成');
+      setStatusMsg({ type: 'error', content: '缺少身份信息 (userId/toolId)，无法生成' });
       return;
     }
     setIsGenerating(true);
     setCustomResult('');
+    setStatusMsg({ type: 'loading', content: '正在生成并保存中...' });
     try {
-      const { imageUrl } = await generateCustomImage(customPrompt, imageBase64 || null, userId, toolId);
+      const { imageUrl } = await generateCustomImage(customPrompt, customReferenceBase64 || null, userId, toolId);
       setCustomResult(imageUrl);
+      setStatusMsg({ type: 'success', content: '生成成功！' });
       // Refresh user integral
       callLaunch(userId, toolId, true);
     } catch (e: any) {
       console.error('Failed to generate image', e);
-      alert(`生成失败: ${e.message}`);
+      setStatusMsg({ type: 'error', content: `生成失败: ${e.message}` });
     }
     setIsGenerating(false);
+    setTimeout(() => setStatusMsg({ type: null, content: '' }), 5000);
   };
 
   if (!mounted) return null;
@@ -339,6 +350,23 @@ export default function Page() {
       </header>
 
       <main className="max-w-6xl mx-auto p-6 mt-6">
+        {statusMsg.type && (
+          <div className={`mb-6 p-4 rounded-lg flex items-center justify-between shadow-sm border ${
+            statusMsg.type === 'loading' ? 'bg-blue-50 border-blue-200 text-blue-600' :
+            statusMsg.type === 'success' ? 'bg-green-50 border-green-200 text-green-600' :
+            'bg-red-50 border-red-200 text-red-600'
+          }`}>
+            <div className="flex items-center gap-2">
+              {statusMsg.type === 'loading' && <Loader2 className="w-5 h-5 animate-spin" />}
+              {statusMsg.type === 'success' && <CheckCircle className="w-5 h-5" />}
+              <span className="font-medium">{statusMsg.content}</span>
+            </div>
+            {statusMsg.type !== 'loading' && (
+              <Button variant="ghost" size="sm" onClick={() => setStatusMsg({ type: null, content: '' })} className="hover:bg-black/5">关闭</Button>
+            )}
+          </div>
+        )}
+
         {launchError && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-2">
@@ -559,10 +587,10 @@ export default function Page() {
               <CardContent className="p-6 space-y-6">
                 <div>
                   <Label className="text-base font-semibold mb-3 block">1. 上传参考图 (可选)</Label>
-                  {imageBase64 ? (
+                  {customReferenceBase64 ? (
                      <div className="relative inline-block">
-                        <img src={imageBase64} className="h-48 w-auto rounded-lg shadow-sm border" alt="Custom Reference" />
-                        <Button size="sm" variant="secondary" className="absolute top-2 right-2" onClick={() => setImageBase64('')}>移除</Button>
+                        <img src={customReferenceBase64} className="h-48 w-auto rounded-lg shadow-sm border" alt="Custom Reference" />
+                        <Button size="sm" variant="secondary" className="absolute top-2 right-2" onClick={() => setCustomReferenceBase64('')}>移除</Button>
                      </div>
                   ) : (
                     <div className="border border-dashed p-8 flex flex-col items-center justify-center rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100" onClick={() => customInputRef.current?.click()}>

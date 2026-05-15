@@ -1,5 +1,5 @@
 
-const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'https://gemini-proxy.aibigtree.com').trim().replace(/\/$/, '');
+const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'http://aibigtree.com').trim().replace(/\/$/, '');
 
 async function readJsonResponse(res: Response) {
   let text = '';
