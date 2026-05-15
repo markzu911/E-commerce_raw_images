@@ -457,7 +457,7 @@ GET /api/tasks/{taskId} -> 轮询状态
 ## 9. 工具后端参考流程
 
 ```js
-const SAAS_ORIGIN = process.env.SAAS_ORIGIN || 'https://aibigtree.com';
+const SAAS_ORIGIN = process.env.SAAS_ORIGIN || 'https://gemini-proxy.aibigtree.com';
 
 async function readJsonResponse(res) {
   const text = await res.text();
