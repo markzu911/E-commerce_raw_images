@@ -2,9 +2,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateImageServer, generateCustomImageServer } from '@/lib/gemini-server';
 import { verifyBeforeGenerate, saveResultImageToSaas } from '@/lib/saas-api';
-import { normalizeImage } from '@/lib/image-utils';
+import { normalizeImage, normalizeInputImage } from '@/lib/image-utils';
 
 export const maxDuration = 120;
+
+const MAX_INPUT_SIZE = 15 * 1024 * 1024; // 15MB
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +17,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing userId or toolId' }, { status: 400 });
     }
 
-    // 1. Verify integral
+    // 0. Preliminary input normalization and size check
+    // We only process if images are provided
+    const processImg = async (b64: string | undefined): Promise<string | undefined> => {
+      if (!b64 || !b64.includes(';base64,')) return b64;
+      const buffer = Buffer.from(b64.split(',')[1], 'base64');
+      if (buffer.byteLength > MAX_INPUT_SIZE) {
+        throw new Error('Input image exceeds 15MB limit');
+      }
+      const normalized = await normalizeInputImage(buffer);
+      const mime = b64.split(',')[0].split(':')[1].split(';')[0];
+      return `data:${mime};base64,${normalized.toString('base64')}`;
+    };
+
+    const imageUrlBase64 = await processImg(params.imageUrlBase64);
+    const modelUrlBase64 = await processImg(params.modelUrlBase64);
+    const sceneUrlBase64 = await processImg(params.sceneUrlBase64);
+    const referenceImageBase64 = await processImg(params.referenceImageBase64);
+
+    // 1. Verify integral (Section 2.B - Just verify, don't consume yet)
     await verifyBeforeGenerate({ userId, toolId });
 
     // 2. Generate AI Image
@@ -23,23 +43,24 @@ export async function POST(req: NextRequest) {
     let type = mode === 'custom' ? 'custom' : params.type;
     
     if (mode === 'custom') {
-      imageBuffer = await generateCustomImageServer(params.prompt, params.referenceImageBase64);
+      imageBuffer = await generateCustomImageServer(params.prompt, referenceImageBase64 || null);
     } else {
       imageBuffer = await generateImageServer(
         params.type,
-        params.imageUrlBase64,
-        params.modelUrlBase64,
-        params.sceneUrlBase64,
+        imageUrlBase64!,
+        modelUrlBase64 || null,
+        sceneUrlBase64 || null,
         params.analysis,
         params.config
       );
     }
 
-    // 3. Normalize Image (PNG, 512-2048px)
+    // 3. Post-process Result Image (PNG, normalization)
     const normalizedBuffer = await normalizeImage(imageBuffer);
 
-    // 4. Save to SAAS (Consume -> Upload -> Commit)
-    const fileName = `${toolId}_${Date.now()}_${type}.png`;
+    // 4. Atomic Save to SAAS (Section 2.C & 3 - Consume -> Upload -> Commit)
+    // Only happens if generation and processing succeeded
+    const fileName = `result_${toolId}_${Date.now()}.png`;
     const savedImage = await saveResultImageToSaas({
       userId,
       toolId,
@@ -48,16 +69,17 @@ export async function POST(req: NextRequest) {
       fileName
     });
 
+    // 5. Final response
     return NextResponse.json({ 
       success: true, 
-      images: [savedImage], // Standard array return as per spec section 4
-      image: savedImage, // Keep legacy for backwards compatibility with my gemini.ts
-      imageUrl: savedImage.url 
+      imageUrl: savedImage.url,
+      recordId: savedImage.recordId,
+      image: savedImage, // Full commit details
+      images: [savedImage]
     });
 
   } catch (error: any) {
     console.error('Generate error details in route:', error);
-    // Attempt to parse error details if it came from the SaaS call
     let errorMsg = error.message;
     try {
         const parsed = JSON.parse(error.message);

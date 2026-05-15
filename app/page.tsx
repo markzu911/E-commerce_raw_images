@@ -81,7 +81,6 @@ export default function Page() {
   const [userData, setUserData] = useState<any>(null);
   const [toolData, setToolData] = useState<any>(null);
   const [launchError, setLaunchError] = useState<string>('');
-  const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error' | 'loading' | null, msg: string }>({ type: null, msg: '' });
 
   const ALL_TYPES = [
     { id: 'main', label: '商品主图' },
@@ -277,33 +276,6 @@ export default function Page() {
     setIsGenerating(false);
   };
 
-  const handleSaveToSaas = async (finalBase64: string, typeLabel: string) => {
-    if (!userId || !toolId) return;
-    setSaveStatus({ type: 'loading', msg: '正在扣除积分并上传到作品中心...' });
-    try {
-      const res = await fetch('/api/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: finalBase64,
-          userId,
-          toolId,
-          fileName: `${typeLabel}_${Date.now()}.png`
-        })
-      });
-      const result = await res.json();
-      if (result.success) {
-        setSaveStatus({ type: 'success', msg: '保存成功！已记录到作品中心。' });
-        callLaunch(userId, toolId, true); // Update integral
-        setTimeout(() => setSaveStatus({ type: null, msg: '' }), 5000);
-      } else {
-        throw new Error(result.error || '保存失败');
-      }
-    } catch (err: any) {
-      setSaveStatus({ type: 'error', msg: `保存失败: ${err.message}` });
-    }
-  };
-
   if (!mounted) return null;
 
   return (
@@ -374,23 +346,6 @@ export default function Page() {
               <span>{launchError}</span>
             </div>
             <Button variant="ghost" size="sm" onClick={() => window.location.reload()} className="text-red-600 hover:bg-red-100">刷新重试</Button>
-          </div>
-        )}
-
-        {saveStatus.type && (
-          <div className={`mb-6 p-4 rounded-lg flex items-center justify-between shadow-sm border ${
-            saveStatus.type === 'loading' ? 'bg-blue-50 border-blue-200 text-blue-600' :
-            saveStatus.type === 'success' ? 'bg-green-50 border-green-200 text-green-600' :
-            'bg-red-50 border-red-200 text-red-600'
-          }`}>
-            <div className="flex items-center gap-2">
-              {saveStatus.type === 'loading' && <Loader2 className="w-4 h-4 animate-spin" />}
-              {saveStatus.type === 'success' && <CheckCircle className="w-4 h-4" />}
-              <span className="font-medium">{saveStatus.msg}</span>
-            </div>
-            {saveStatus.type !== 'loading' && (
-              <Button variant="ghost" size="sm" onClick={() => setSaveStatus({ type: null, msg: '' })} className="hover:bg-black/5">关闭</Button>
-            )}
           </div>
         )}
 
@@ -585,7 +540,6 @@ export default function Page() {
                 type={selectedType} 
                 imgSrc={generatedImages[selectedType]} 
                 analysis={analysis!} 
-                onSaveToSaas={handleSaveToSaas}
               />
             </div>
           </div>
@@ -645,10 +599,6 @@ export default function Page() {
                 <div className="inline-block relative rounded-xl overflow-hidden shadow-xl border">
                   <img src={customResult} className="max-w-full max-h-[70vh] object-contain" alt="Custom Generated" />
                   <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent flex justify-end gap-3">
-                    <Button variant="secondary" size="sm" onClick={() => handleSaveToSaas(customResult, '自由生图')}>
-                      <Upload className="w-4 h-4 mr-2" />
-                      保存到作品中心
-                    </Button>
                     <Button variant="secondary" size="sm" onClick={() => {
                       const link = document.createElement('a');
                       link.download = `custom-generation.png`;
@@ -670,7 +620,7 @@ export default function Page() {
   );
 }
 
-function ResultCard({ type, imgSrc, analysis, onSaveToSaas }: { type: string; imgSrc?: string; analysis: AnalysisData; onSaveToSaas: (b64: string, label: string) => void }) {
+function ResultCard({ type, imgSrc, analysis }: { type: string; imgSrc?: string; analysis: AnalysisData }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -726,12 +676,6 @@ function ResultCard({ type, imgSrc, analysis, onSaveToSaas }: { type: string; im
     }
   };
 
-  const saveToGallery = () => {
-    if (canvasRef.current) {
-      onSaveToSaas(canvasRef.current.toDataURL(), labels[type]);
-    }
-  };
-
   return (
     <Card className="overflow-hidden shadow-lg border-2 border-slate-100 max-w-sm mx-auto w-full">
       <div className="bg-slate-100 aspect-[3/4] relative flex items-center justify-center group">
@@ -744,9 +688,6 @@ function ResultCard({ type, imgSrc, analysis, onSaveToSaas }: { type: string; im
               </Button>
               <Button size="icon" variant="secondary" onClick={() => setIsEditOpen(true)} title="编辑文字">
                 <Edit2 className="w-5 h-5" />
-              </Button>
-              <Button size="icon" variant="secondary" onClick={saveToGallery} title="保存到作品集">
-                <Upload className="w-5 h-5" />
               </Button>
               <Button size="icon" variant="secondary" onClick={downloadImage} title="下载图片">
                 <Download className="w-5 h-5" />

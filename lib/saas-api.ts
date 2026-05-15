@@ -1,11 +1,6 @@
 
 const SAAS_ORIGIN = (process.env.SAAS_ORIGIN || 'https://aibigtree.com').trim().replace(/\/$/, '');
 
-// Bypassing TLS certificate validation for aibigtree.com due to known cert mismatch (gemini-proxy.aibigtree.com)
-if (typeof process !== 'undefined' && SAAS_ORIGIN.includes('aibigtree.com')) {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-}
-
 async function readJsonResponse(res: Response) {
   let text = '';
   try {
