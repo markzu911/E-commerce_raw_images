@@ -31,6 +31,6 @@ export async function normalizeImage(input: Buffer): Promise<Buffer> {
       fit: 'inside',
       withoutEnlargement: true
     })
-    .png()
+    .jpeg({ quality: 90, progressive: true })
     .toBuffer();
 }

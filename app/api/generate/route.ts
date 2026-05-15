@@ -62,12 +62,12 @@ export async function POST(req: NextRequest) {
 
     // 4. Atomic Save to SAAS (Section 2.C & 3 - Consume -> Upload -> Commit)
     // Only happens if generation and processing succeeded
-    const fileName = `result_${toolId}_${Date.now()}.png`;
+    const fileName = `result_${toolId}_${Date.now()}.jpg`;
     const savedImage = await saveResultImageToSaas({
       userId,
       toolId,
       imageBuffer: normalizedBuffer,
-      mimeType: 'image/png',
+      mimeType: 'image/jpeg',
       fileName
     });
 
