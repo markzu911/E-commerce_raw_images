@@ -4,6 +4,8 @@ import { generateImageServer, generateCustomImageServer } from '@/lib/gemini-ser
 import { verifyBeforeGenerate, saveResultImageToSaas } from '@/lib/saas-api';
 import { normalizeImage } from '@/lib/image-utils';
 
+export const maxDuration = 120;
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
