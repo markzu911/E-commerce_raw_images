@@ -18,11 +18,17 @@ async function readJsonResponse(res: Response) {
 }
 
 export async function launchTool({ userId, toolId }: { userId: string, toolId: string }) {
+  console.log(`Calling launch: ${SAAS_ORIGIN}/api/tool/launch with userId=${userId}, toolId=${toolId}`);
   const res = await fetch(`${SAAS_ORIGIN}/api/tool/launch`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, toolId })
   });
+  if (!res.ok) {
+      console.error(`Launch failed: ${res.status} ${res.statusText}`);
+      const text = await res.text();
+      console.error(`Launch response: ${text}`);
+  }
   return readJsonResponse(res);
 }
 

@@ -55,7 +55,14 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Generate error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error('Generate error details in route:', error);
+    // Attempt to parse error details if it came from the SaaS call
+    let errorMsg = error.message;
+    try {
+        const parsed = JSON.parse(error.message);
+        errorMsg = parsed.message || parsed.error || error.message;
+    } catch {}
+    
+    return NextResponse.json({ success: false, error: errorMsg }, { status: 500 });
   }
 }
