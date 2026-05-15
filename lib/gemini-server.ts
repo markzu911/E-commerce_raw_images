@@ -25,7 +25,7 @@ export async function analyzeImageServer(imageBase64: string, type: string): Pro
   const typeDesc = typeMap[type] || '电商图片';
 
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3.1-flash-image-preview',
     contents: {
       parts: [
         {
@@ -195,7 +195,7 @@ export async function generateImageServer(
   parts.push({ text: prompt });
 
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3.1-flash-image-preview',
     contents: {
       parts
     },
@@ -238,7 +238,7 @@ export async function generateCustomImageServer(
   parts.push({ text: prompt });
 
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3.1-flash-image-preview',
     contents: {
       parts
     },
