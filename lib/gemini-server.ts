@@ -221,7 +221,7 @@ export async function generateImageServer(
     },
     config: {
       imageConfig: {
-        aspectRatio: '3:4',
+        aspectRatio: config?.aspectRatio || '3:4',
       }
     }
   });
@@ -240,7 +240,8 @@ export async function generateImageServer(
 
 export async function generateCustomImageServer(
   prompt: string,
-  referenceImageBase64: string | null
+  referenceImageBase64: string | null,
+  config?: any
 ): Promise<Buffer> {
   const ai = getGeminiClient();
   const extractParts = (b64: string) => {
@@ -266,7 +267,7 @@ export async function generateCustomImageServer(
     },
     config: {
       imageConfig: {
-        aspectRatio: '3:4',
+        aspectRatio: config?.aspectRatio || '3:4',
       }
     }
   });

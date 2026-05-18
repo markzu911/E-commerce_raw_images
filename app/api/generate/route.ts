@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     let type = mode === 'custom' ? 'custom' : params.type;
     
     if (mode === 'custom') {
-      imageBuffer = await generateCustomImageServer(params.prompt, referenceImageBase64 || null);
+      imageBuffer = await generateCustomImageServer(params.prompt, referenceImageBase64 || null, params.config);
     } else {
       imageBuffer = await generateImageServer(
         params.type,

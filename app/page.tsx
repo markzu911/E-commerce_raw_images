@@ -67,7 +67,8 @@ export default function Page() {
   const [config, setConfig] = useState<PromptConfig>({
     garmentCategory: '', garmentColor: '', garmentMaterial: '', garmentStyle: '',
     modelStyle: '', sceneStyle: '', sellingPoint1: '', sellingPoint2: '', sellingPoint3: '',
-    brandName: '', sceneTheme: '', resolution: '2k'
+    brandName: '', sceneTheme: '', resolution: '2k',
+    aspectRatio: '1:1'
   });
   
   const [selectedType, setSelectedType] = useState<string>('main');
@@ -490,7 +491,7 @@ export default function Page() {
             )}
 
             {step === 'result' && analysis && (
-              <div className="max-w-[1440px] mx-auto pb-24 px-6 sm:px-8 lg:px-12 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div className="max-w-[1600px] mx-auto pb-24 px-6 sm:px-8 lg:px-12 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
                 {/* Header Section: Title & Main Actions */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 pb-12 border-b border-slate-100 dark:border-slate-800">
                   <div className="space-y-4">
@@ -500,252 +501,201 @@ export default function Page() {
                     </div>
                     <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">定制精炼参数</h2>
                     <p className="text-base sm:text-lg text-slate-400 font-medium max-w-2xl leading-relaxed">
-                      Gemini 已为您提取单品特征，以下是基于垂直模型优化的生成参数。您可以手动干预以获得更极致的效果。
+                      基于垂直风格模型优化的生成参数。您可以手动干预以获得更极致的效果。
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
                      <Button variant="outline" className="rounded-2xl px-10 h-16 font-black border-slate-100 dark:border-slate-800 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all" onClick={() => setStep('select')}>
                        返回风格选择
                      </Button>
-                     <Button onClick={handleGenerate} className="rounded-2xl px-14 h-16 font-black shadow-[0_25px_60px_rgba(var(--primary-rgb),0.25)] hover:scale-105 transition-all text-xl group">
+                     <Button onClick={handleGenerate} className="rounded-2xl px-14 h-16 font-black shadow-[0_25px_60px_rgba(var(--primary-rgb),0.25)] hover:bg-primary/90 hover:scale-105 transition-all text-xl group">
                        启动精炼生成 <Zap className="w-6 h-6 ml-3 fill-current group-hover:animate-pulse" />
                      </Button>
                   </div>
                 </div>
 
-                <Tabs defaultValue="analysis" className="w-full space-y-12">
-                  {/* Tabs & Resolution Row */}
-                  <div className="flex flex-col lg:flex-row items-center justify-between gap-8 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-3 sm:p-4 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-2xl shadow-slate-200/30 sticky top-28 z-40">
-                    <TabsList className="bg-slate-100/30 dark:bg-slate-950/50 p-1.5 rounded-[28px] h-16 border border-slate-100/50 dark:border-slate-800/50">
-                      <TabsTrigger value="analysis" className="rounded-[22px] px-10 sm:px-14 h-full font-black text-[11px] uppercase tracking-[0.25em] data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-2xl data-[state=active]:shadow-slate-200/80 data-[state=active]:text-primary transition-all">
-                        01 Data Analysis
-                      </TabsTrigger>
-                      <TabsTrigger value="config" className="rounded-[22px] px-10 sm:px-14 h-full font-black text-[11px] uppercase tracking-[0.25em] data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-2xl data-[state=active]:shadow-slate-200/80 data-[state=active]:text-primary transition-all">
-                        02 Custom Tune
-                      </TabsTrigger>
-                    </TabsList>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+                  {/* Left Sidebar: Assets */}
+                  <aside className="lg:col-span-3 space-y-10 lg:sticky lg:top-[120px]">
+                    <div className="relative">
+                      <div className="absolute -inset-6 bg-primary/5 blur-[60px] opacity-50" />
+                      <div className="relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[48px] overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none">
+                        <div className="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Master Ref</span>
+                          <div className="flex gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-primary/20" />
+                            <div className="w-2 h-2 rounded-full bg-primary" />
+                          </div>
+                        </div>
+                        <div className="p-8">
+                          <div className="relative group/ref overflow-hidden rounded-[32px]">
+                             <img src={imageBase64} className="w-full aspect-[3/4] object-cover shadow-2xl border border-slate-50 group-hover:scale-110 transition-transform duration-700" alt="Original" />
+                             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/ref:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     
-                    <div className="flex items-center gap-8 px-8 py-4 bg-white/80 dark:bg-slate-950/80 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm">
-                      <div className="flex items-center gap-3">
-                         <Maximize2 className="w-4 h-4 text-slate-300" />
-                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Target Output</span>
-                      </div>
-                      <div className="h-5 w-px bg-slate-100 dark:bg-slate-800" />
-                      <div className="flex gap-5">
-                        {(['1k', '2k', '4k'] as const).map((res) => (
-                          <button
-                            key={res}
-                            onClick={() => setConfig({ ...config, resolution: res })}
-                            className={`text-[12px] font-black uppercase tracking-tighter transition-all px-4 py-1.5 rounded-xl ${
-                              config.resolution === res ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' : 'text-slate-300 hover:text-slate-500'
-                            }`}
-                          >
-                            {res}
-                          </button>
-                        ))}
+                    <div className="space-y-8">
+                      <div className="grid gap-8">
+                        {selectedType !== 'main' && selectedType !== 'detail' && (
+                          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/30 transition-all group">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">模特参考 (Portrait)</Label>
+                            {modelBase64 ? (
+                              <div className="relative rounded-[24px] overflow-hidden group/img shadow-2xl">
+                                <img src={modelBase64} className="w-full aspect-[4/5] object-cover" alt="Model" />
+                                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[6px]">
+                                  <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setModelBase64('')}>更换参考</Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div 
+                                className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[28px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
+                                onClick={() => modelInputRef.current?.click()}
+                              >
+                                <Sparkles className="w-8 h-8 text-primary/40 mb-4" />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center px-6">上传人像参考</span>
+                                <input type="file" ref={modelInputRef} className="hidden" accept="image/*" onChange={handleModelUpload} />
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {selectedType === 'scene' && (
+                          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/30 transition-all group">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">背景参考 (Scene)</Label>
+                            {sceneBase64 ? (
+                              <div className="relative rounded-[24px] overflow-hidden group/img shadow-2xl">
+                                <img src={sceneBase64} className="w-full aspect-[4/5] object-cover" alt="Scene" />
+                                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[6px]">
+                                  <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setSceneBase64('')}>更换参考</Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div 
+                                className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[28px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
+                                onClick={() => sceneInputRef.current?.click()}
+                              >
+                                <ImageIcon className="w-8 h-8 text-primary/40 mb-4" />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center px-6">上传背景底片</span>
+                                <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
+                  </aside>
 
-                  {/* Main Grid: Sidebar & Parameters Card */}
-                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 lg:gap-16 items-start">
-                    {/* Sidebar for Reference & Resources */}
-                    <aside className="xl:col-span-3 lg:col-span-4 w-full space-y-10 lg:sticky lg:top-[220px]">
-                      <div className="relative">
-                        <div className="absolute -inset-6 bg-primary/5 blur-[60px] opacity-50" />
-                        <div className="relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[48px] overflow-hidden shadow-2xl shadow-slate-200/80 dark:shadow-none">
-                          <div className="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Master Ref</span>
-                            <div className="flex gap-1.5">
-                              <div className="w-2 h-2 rounded-full bg-primary/20" />
-                              <div className="w-2 h-2 rounded-full bg-primary" />
-                            </div>
+                  {/* Right Main Dashboard: 3 Columns of Parameters */}
+                  <div className="lg:col-span-9 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[64px] shadow-2xl shadow-slate-200/30 dark:shadow-none p-12 lg:p-16 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/[0.03] blur-[140px] -mr-80 -mt-80 rounded-full" />
+                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/[0.03] blur-[140px] -ml-80 -mb-80 rounded-full" />
+                    
+                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-12 xl:gap-20">
+                      {/* Column 1: Data Analysis */}
+                      <div className="space-y-12">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                            <span className="text-xs font-black">01</span>
                           </div>
-                          <div className="p-8">
-                            <div className="relative group/ref overflow-hidden rounded-[32px]">
-                               <img src={imageBase64} className="w-full aspect-[3/4] object-cover shadow-2xl border border-slate-50 group-hover:scale-110 transition-transform duration-700" alt="Original" />
-                               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/ref:opacity-100 transition-opacity" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-8 px-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Pipeline Assets</h3>
-                          <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800 ml-6" />
+                          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-800 dark:text-white">数据分析</h3>
                         </div>
                         
-                        <div className="grid gap-8">
-                          {selectedType !== 'main' && selectedType !== 'detail' && (
-                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all group">
-                              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">Human Model</Label>
-                              {modelBase64 ? (
-                                <div className="relative rounded-[24px] overflow-hidden group/img shadow-2xl">
-                                  <img src={modelBase64} className="w-full aspect-[4/5] object-cover" alt="Model" />
-                                  <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[6px]">
-                                    <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setModelBase64('')}>REPLACE MODEL</Button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div 
-                                  className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[28px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
-                                  onClick={() => modelInputRef.current?.click()}
-                                >
-                                  <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-5 shadow-sm group-hover:scale-110 transition-transform">
-                                    <Sparkles className="w-8 h-8 text-primary/40" />
-                                  </div>
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center px-6">Upload Portrait Reference</span>
-                                  <input type="file" ref={modelInputRef} className="hidden" accept="image/*" onChange={handleModelUpload} />
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {selectedType === 'scene' && (
-                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all group">
-                              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">Environment</Label>
-                              {sceneBase64 ? (
-                                <div className="relative rounded-[24px] overflow-hidden group/img shadow-2xl">
-                                  <img src={sceneBase64} className="w-full aspect-[4/5] object-cover" alt="Scene" />
-                                  <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[6px]">
-                                    <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setSceneBase64('')}>REPLACE SCENE</Button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div 
-                                  className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[28px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
-                                  onClick={() => sceneInputRef.current?.click()}
-                                >
-                                  <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-5 shadow-sm group-hover:scale-110 transition-transform">
-                                    <ImageIcon className="w-8 h-8 text-primary/40" />
-                                  </div>
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center px-6">Upload Atmosphere Plate</span>
-                                  <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
-                                </div>
-                              )}
-                            </div>
-                          )}
+                        <div className="space-y-8">
+                          <EditableTextField label="商品对象" value={analysis.productName} onChange={(v) => setAnalysis({...analysis, productName: v})} />
+                          <EditableTextField label="商品品类" value={analysis.category} onChange={(v) => setAnalysis({...analysis, category: v})} />
+                          <EditableTextField label="面料纹理" value={analysis.materials} onChange={(v) => setAnalysis({...analysis, materials: v})} />
+                          <EditableTextField label="核心描述" value={analysis.description} onChange={(v) => setAnalysis({...analysis, description: v})} />
                         </div>
                       </div>
-                    </aside>
 
-                    {/* Parameters area */}
-                    <div className="xl:col-span-9 lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[64px] shadow-2xl shadow-slate-200/50 dark:shadow-none min-h-[800px] relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/[0.03] blur-[120px] -mr-64 -mt-64 rounded-full" />
-                      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/[0.03] blur-[120px] -ml-64 -mb-64 rounded-full" />
-                      
-                      <div className="p-10 sm:p-16 relative z-10">
-                        <TabsContent value="analysis" className="mt-0 space-y-20 animate-in fade-in slide-in-from-right-8 duration-700">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
-                            <EditableTextField label="Product Designation" value={analysis.productName} onChange={(v) => setAnalysis({...analysis, productName: v})} />
-                            <EditableTextField label="Domain Category" value={analysis.category} onChange={(v) => setAnalysis({...analysis, category: v})} />
-                            <EditableTextField label="Aesthetic Style" value={analysis.style} onChange={(v) => setAnalysis({...analysis, style: v})} />
-                            <EditableTextField label="Materiality Detail" value={analysis.materials} onChange={(v) => setAnalysis({...analysis, materials: v})} />
+                      {/* Column 2: Refine Parameters */}
+                      <div className="space-y-12">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                            <span className="text-xs font-black">02</span>
                           </div>
-                          
-                          <div className="h-px bg-slate-50 dark:bg-slate-800" />
-                          
-                          <div className="grid grid-cols-1 gap-12">
-                            <EditableTextField label="Core Consumer Archetype" value={analysis.targetAudience} onChange={(v) => setAnalysis({...analysis, targetAudience: v})} />
-                            <EditableTextField label="Product Narrative Focus" value={analysis.description} onChange={(v) => setAnalysis({...analysis, description: v})} />
-                          </div>
-                          
-                          <div className="space-y-16">
-                            <EditableTagList label="Color Schema" tags={analysis.colors} onChange={(v) => setAnalysis({...analysis, colors: v})} />
-                            <EditableTagList label="Core Value Props" tags={analysis.sellingPoints} onChange={(v) => setAnalysis({...analysis, sellingPoints: v})} />
-                            <EditableTagList label="Semantic Graph Keywords" tags={analysis.keywords} onChange={(v) => setAnalysis({...analysis, keywords: v})} />
-                          </div>
-                        </TabsContent>
-                        
-                        <TabsContent value="config" className="mt-0 space-y-20 animate-in fade-in slide-in-from-right-8 duration-700">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
-                            <EditableTextField label="Garment Object" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
-                            <EditableTextField label="Primary Tint" value={config.garmentColor} onChange={(v) => setConfig({...config, garmentColor: v})} />
-                            <EditableTextField label="Micro-Texture" value={config.garmentMaterial} onChange={(v) => setConfig({...config, garmentMaterial: v})} />
-                            <EditableTextField label="Artistic Direction" value={config.garmentStyle} onChange={(v) => setConfig({...config, garmentStyle: v})} />
-                            {selectedType !== 'main' && selectedType !== 'detail' && <EditableTextField label="Persona Definition" value={config.modelStyle} onChange={(v) => setConfig({...config, modelStyle: v})} />}
-                            {(selectedType === 'scene' || selectedType === 'sellingPoint') && <EditableTextField label="Environmental Tone" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />}
-                          </div>
+                          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-800 dark:text-white">精修参数</h3>
+                        </div>
 
-                          <div className="h-px bg-slate-50 dark:bg-slate-800" />
+                        <div className="space-y-8">
+                          <EditableTextField label="风格方向" value={config.garmentStyle} onChange={(v) => setConfig({...config, garmentStyle: v})} />
+                          <EditableTextField label="材质细节" value={config.garmentMaterial} onChange={(v) => setConfig({...config, garmentMaterial: v})} />
+                          <EditableTextField label="光影氛围" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />
+                          <EditableTextField label="构图控制" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
+                        </div>
+                      </div>
 
-                          <div className="space-y-14">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <div className="w-2 h-6 bg-primary rounded-full" />
-                                <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">
-                                  Neural Scene Orchestrator
-                                </h4>
-                              </div>
-                              {config.resolution === '4k' && (
-                                <span className="text-[10px] font-black uppercase text-primary px-4 py-1.5 bg-primary/5 border border-primary/10 rounded-full animate-pulse shadow-sm">Super-Resolution Active</span>
-                              )}
+                      {/* Column 3: Output Specs */}
+                      <div className="space-y-12 md:col-span-2 xl:col-span-1">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <span className="text-xs font-black">03</span>
+                          </div>
+                          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-800 dark:text-white">输出规格</h3>
+                        </div>
+
+                        <div className="space-y-10">
+                          <div className="space-y-4">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">分辨率 (Resolution)</Label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {(['1k', '2k', '4k'] as const).map((res) => (
+                                <button
+                                  key={res}
+                                  onClick={() => setConfig({ ...config, resolution: res })}
+                                  className={`h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest border transition-all ${
+                                    config.resolution === res 
+                                    ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105' 
+                                    : 'bg-slate-50/50 border-slate-100 text-slate-400 hover:border-primary/30'
+                                  }`}
+                                >
+                                  {res === '1k' ? '标准 1K' : res === '2k' ? '高清 2K' : '超清 4K'}
+                                </button>
+                              ))}
                             </div>
-                            
-                            {selectedType === 'scene' && (
-                              <div className="space-y-10">
-                                <EditableTextField label="Thematic Core" value={config.sceneTheme} onChange={(v) => setConfig({...config, sceneTheme: v})} />
-                                <div className="flex flex-wrap gap-5">
-                                  {PRESET_SCENES.map((scene) => (
-                                    <button 
-                                      key={scene} 
-                                      className={`px-8 py-4 rounded-3xl text-[11px] font-black uppercase tracking-[0.25em] border transition-all duration-500 ${
-                                        config.sceneTheme === scene 
-                                        ? 'bg-primary border-primary text-primary-foreground shadow-[0_20px_50px_rgba(var(--primary-rgb),0.3)] scale-110 active:scale-95' 
-                                        : 'bg-white border-slate-100 hover:border-primary/30 text-slate-400 hover:text-slate-600 dark:bg-slate-800 dark:border-slate-700'
-                                      }`}
-                                      onClick={() => setConfig({...config, sceneTheme: scene})}
-                                    >
-                                      {scene.split('(')[0].trim()}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className="flex items-start gap-6 p-8 bg-primary/5 rounded-[40px] border border-primary/10 shadow-inner">
-                                   <div className="shrink-0 w-10 h-10 bg-primary/20 rounded-2xl flex items-center justify-center">
-                                      <Zap className="w-5 h-5 text-primary" />
-                                   </div>
-                                   <p className="text-[12px] font-medium text-primary/70 leading-relaxed italic">
-                                      Core Logic: 系统将优先融合您上传的自定义背景图。预设场景将作为视觉锚点，辅助 AI 构建更精细的自然光影交互模型。
-                                   </p>
-                                </div>
-                              </div>
-                            )}
-
-                            {selectedType === 'sellingPoint' && (
-                              <div className="space-y-10">
-                                <EditableTextField 
-                                  label="Hero Visual Copy" 
-                                  value={analysis?.sellingPoints?.[0] || ''} 
-                                  onChange={(v) => {
-                                    if (!analysis) return;
-                                    const sps = [...(analysis.sellingPoints || [''])];
-                                    sps[0] = v;
-                                    setAnalysis({...analysis, sellingPoints: sps});
-                                  }} 
-                                />
-                                <div className="p-8 bg-slate-50 dark:bg-slate-800 rounded-[40px] border border-slate-100 dark:border-slate-700 shadow-sm">
-                                   <p className="text-[12px] font-medium text-slate-400 leading-relaxed">
-                                      该文本将作为视觉焦点，以极高对比度呈现。建议保持在 12-20 字以内，以获得最佳渲染张力。
-                                   </p>
-                                </div>
-                              </div>
-                            )}
-
-                            {selectedType !== 'scene' && selectedType !== 'sellingPoint' && (
-                              <div className="py-24 flex flex-col items-center justify-center opacity-30 grayscale saturate-0">
-                                <div className="w-24 h-24 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-8 shadow-inner">
-                                  <ImageIcon className="w-12 h-12 text-slate-200" />
-                                </div>
-                                <p className="text-[12px] font-black uppercase tracking-[0.4em] text-center text-slate-300">Adaptive Neural Backdrop<br/><span className="text-[10px] font-medium tracking-normal mt-3 block text-slate-200">Full Automation Framework Enabled</span></p>
-                              </div>
-                            )}
                           </div>
-                        </TabsContent>
+
+                          <div className="space-y-4">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">画幅比例 (Aspect Ratio)</Label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {(['1:1', '3:4', '9:16'] as const).map((ratio) => (
+                                <button
+                                  key={ratio}
+                                  onClick={() => setConfig({ ...config, aspectRatio: ratio as any })}
+                                  className={`h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest border transition-all ${
+                                    config.aspectRatio === ratio 
+                                    ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105' 
+                                    : 'bg-slate-50/50 border-slate-100 text-slate-400 hover:border-primary/30'
+                                  }`}
+                                >
+                                  {ratio}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="p-8 bg-primary/5 rounded-[32px] border border-primary/10 shadow-inner">
+                            <div className="flex items-center gap-3 mb-3">
+                              <Zap className="w-4 h-4 text-primary" />
+                              <span className="text-[10px] font-black uppercase tracking-widest text-primary">Neural Optimization</span>
+                            </div>
+                            <p className="text-[11px] font-medium text-slate-500 leading-relaxed italic">
+                              AI 将基于您的规格自动调整光影采样率。4K 分辨率将开启深度细节增强。
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
+
+                    {/* Additional Options Footer */}
+                    <div className="mt-20 pt-12 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-12">
+                       <EditableTagList label="Color Schema (色彩方案)" tags={analysis.colors} onChange={(v) => setAnalysis({...analysis, colors: v})} />
+                       <EditableTagList label="Value Props (卖点关键词)" tags={analysis.sellingPoints} onChange={(v) => setAnalysis({...analysis, sellingPoints: v})} />
+                       <EditableTagList label="Semantic Keywords (语义词包)" tags={analysis.keywords} onChange={(v) => setAnalysis({...analysis, keywords: v})} />
+                    </div>
                   </div>
-                </Tabs>
+                </div>
               </div>
             )}
 
