@@ -490,204 +490,210 @@ export default function Page() {
             )}
 
             {step === 'result' && analysis && (
-              <div className="flex flex-col lg:flex-row gap-16 items-start max-w-7xl mx-auto pb-20">
-                {/* Fixed Sidebar for Reference & Resources */}
-                <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-24 space-y-10">
-                  <div className="relative">
-                    <div className="absolute -inset-4 bg-primary/5 blur-3xl opacity-50" />
-                    <div className="relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none">
-                      <div className="px-6 py-5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Master Reference</span>
-                        <div className="flex gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        </div>
-                      </div>
-                      <div className="p-6">
-                        <div className="relative group/ref">
-                           <img src={imageBase64} className="w-full aspect-[3/4] object-cover rounded-3xl shadow-lg border border-slate-50 group-hover:scale-[1.02] transition-transform duration-500" alt="Original" />
-                           <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/ref:opacity-100 transition-opacity rounded-3xl" />
-                        </div>
-                      </div>
+              <div className="max-w-[1440px] mx-auto pb-24 px-6 sm:px-8 lg:px-12 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                {/* Header Section: Title & Main Actions */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 pb-12 border-b border-slate-100 dark:border-slate-800">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-px bg-primary/30" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Intelligence Engine v3</span>
                     </div>
+                    <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">定制精炼参数</h2>
+                    <p className="text-base sm:text-lg text-slate-400 font-medium max-w-2xl leading-relaxed">
+                      Gemini 已为您提取单品特征，以下是基于垂直模型优化的生成参数。您可以手动干预以获得更极致的效果。
+                    </p>
                   </div>
-                  
-                  <div className="space-y-6 px-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Resource Pipeline</h3>
-                      <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800 ml-4" />
-                    </div>
+                  <div className="flex flex-wrap items-center gap-4">
+                     <Button variant="outline" className="rounded-2xl px-10 h-16 font-black border-slate-100 dark:border-slate-800 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all" onClick={() => setStep('select')}>
+                       返回风格选择
+                     </Button>
+                     <Button onClick={handleGenerate} className="rounded-2xl px-14 h-16 font-black shadow-[0_25px_60px_rgba(var(--primary-rgb),0.25)] hover:scale-105 transition-all text-xl group">
+                       启动精炼生成 <Zap className="w-6 h-6 ml-3 fill-current group-hover:animate-pulse" />
+                     </Button>
+                  </div>
+                </div>
+
+                <Tabs defaultValue="analysis" className="w-full space-y-12">
+                  {/* Tabs & Resolution Row */}
+                  <div className="flex flex-col lg:flex-row items-center justify-between gap-8 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-3 sm:p-4 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-2xl shadow-slate-200/30 sticky top-28 z-40">
+                    <TabsList className="bg-slate-100/30 dark:bg-slate-950/50 p-1.5 rounded-[28px] h-16 border border-slate-100/50 dark:border-slate-800/50">
+                      <TabsTrigger value="analysis" className="rounded-[22px] px-10 sm:px-14 h-full font-black text-[11px] uppercase tracking-[0.25em] data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-2xl data-[state=active]:shadow-slate-200/80 data-[state=active]:text-primary transition-all">
+                        01 Data Analysis
+                      </TabsTrigger>
+                      <TabsTrigger value="config" className="rounded-[22px] px-10 sm:px-14 h-full font-black text-[11px] uppercase tracking-[0.25em] data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-2xl data-[state=active]:shadow-slate-200/80 data-[state=active]:text-primary transition-all">
+                        02 Custom Tune
+                      </TabsTrigger>
+                    </TabsList>
                     
-                    <div className="grid gap-6">
-                      {selectedType !== 'main' && selectedType !== 'detail' && (
-                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-sm hover:shadow-xl hover:shadow-slate-200/30 transition-all group">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-5 block">Human Model Layer</Label>
-                          {modelBase64 ? (
-                            <div className="relative rounded-[20px] overflow-hidden group/img shadow-md">
-                              <img src={modelBase64} className="w-full aspect-[4/5] object-cover" alt="Model" />
-                              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[4px]">
-                                <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setModelBase64('')}>REMOVE MODEL</Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div 
-                              className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[20px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
-                              onClick={() => modelInputRef.current?.click()}
-                            >
-                              <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                                <Sparkles className="w-6 h-6 text-primary/40" />
-                              </div>
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-4">Upload AI Model Reference</span>
-                              <input type="file" ref={modelInputRef} className="hidden" accept="image/*" onChange={handleModelUpload} />
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {selectedType === 'scene' && (
-                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-sm hover:shadow-xl hover:shadow-slate-200/30 transition-all group">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-5 block">Environment Layer</Label>
-                          {sceneBase64 ? (
-                            <div className="relative rounded-[20px] overflow-hidden group/img shadow-md">
-                              <img src={sceneBase64} className="w-full aspect-[4/5] object-cover" alt="Scene" />
-                              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[4px]">
-                                <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setSceneBase64('')}>REMOVE SCENE</Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div 
-                              className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[20px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
-                              onClick={() => sceneInputRef.current?.click()}
-                            >
-                              <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                                <ImageIcon className="w-6 h-6 text-primary/40" />
-                              </div>
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-4">Upload Custom Atmosphere</span>
-                              <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </aside>
-
-                {/* Main Content Area */}
-                <div className="flex-1 space-y-10">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-10 border-b border-slate-100 dark:border-slate-800">
-                    <div className="space-y-4">
+                    <div className="flex items-center gap-8 px-8 py-4 bg-white/80 dark:bg-slate-950/80 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-px bg-primary/30" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Intelligence Engine v3</span>
+                         <Maximize2 className="w-4 h-4 text-slate-300" />
+                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Target Output</span>
                       </div>
-                      <h2 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">定制精炼参数</h2>
-                      <p className="text-base text-slate-400 font-medium max-w-lg leading-relaxed">
-                        Gemini 已为您提取单品特征，以下是基于垂直模型优化的生成参数。您可以手动干预以获得更极致的效果。
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                       <Button variant="outline" className="rounded-2xl px-8 h-14 font-black border-slate-100 dark:border-slate-800 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all" onClick={() => setStep('select')}>
-                         返回风格选择
-                       </Button>
-                       <Button onClick={handleGenerate} className="rounded-2xl px-12 h-14 font-black shadow-[0_20px_50px_rgba(var(--primary-rgb),0.25)] hover:scale-105 transition-all text-lg group">
-                         启动精炼生成 <Zap className="w-5 h-5 ml-2 fill-current group-hover:animate-pulse" />
-                       </Button>
+                      <div className="h-5 w-px bg-slate-100 dark:bg-slate-800" />
+                      <div className="flex gap-5">
+                        {(['1k', '2k', '4k'] as const).map((res) => (
+                          <button
+                            key={res}
+                            onClick={() => setConfig({ ...config, resolution: res })}
+                            className={`text-[12px] font-black uppercase tracking-tighter transition-all px-4 py-1.5 rounded-xl ${
+                              config.resolution === res ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' : 'text-slate-300 hover:text-slate-500'
+                            }`}
+                          >
+                            {res}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="relative">
-                    <Tabs defaultValue="analysis" className="w-full">
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-10">
-                        <TabsList className="bg-slate-100/30 dark:bg-slate-900/50 p-1.5 rounded-[20px] h-14 border border-slate-100 dark:border-slate-800">
-                          <TabsTrigger value="analysis" className="rounded-[14px] px-10 h-full font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 data-[state=active]:text-primary transition-all">
-                            01 Data Analysis
-                          </TabsTrigger>
-                          <TabsTrigger value="config" className="rounded-[14px] px-10 h-full font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:shadow-xl data-[state=active]:shadow-slate-200/50 data-[state=active]:text-primary transition-all">
-                            02 Custom Tune
-                          </TabsTrigger>
-                        </TabsList>
-                        
-                        <div className="flex items-center gap-6 px-6 py-3 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                          <div className="flex items-center gap-2">
-                             <Maximize2 className="w-3.5 h-3.5 text-slate-300" />
-                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Resolution</span>
+                  {/* Main Grid: Sidebar & Parameters Card */}
+                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 lg:gap-16 items-start">
+                    {/* Sidebar for Reference & Resources */}
+                    <aside className="xl:col-span-3 lg:col-span-4 w-full space-y-10 lg:sticky lg:top-[220px]">
+                      <div className="relative">
+                        <div className="absolute -inset-6 bg-primary/5 blur-[60px] opacity-50" />
+                        <div className="relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[48px] overflow-hidden shadow-2xl shadow-slate-200/80 dark:shadow-none">
+                          <div className="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Master Ref</span>
+                            <div className="flex gap-1.5">
+                              <div className="w-2 h-2 rounded-full bg-primary/20" />
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                            </div>
                           </div>
-                          <div className="h-4 w-px bg-slate-100 dark:bg-slate-800" />
-                          <div className="flex gap-4">
-                            {(['1k', '2k', '4k'] as const).map((res) => (
-                              <button
-                                key={res}
-                                onClick={() => setConfig({ ...config, resolution: res })}
-                                className={`text-[11px] font-black uppercase tracking-tighter transition-all px-3 py-1 rounded-lg ${
-                                  config.resolution === res ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-300 hover:text-slate-500'
-                                }`}
-                              >
-                                {res}
-                              </button>
-                            ))}
+                          <div className="p-8">
+                            <div className="relative group/ref overflow-hidden rounded-[32px]">
+                               <img src={imageBase64} className="w-full aspect-[3/4] object-cover shadow-2xl border border-slate-50 group-hover:scale-110 transition-transform duration-700" alt="Original" />
+                               <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/ref:opacity-100 transition-opacity" />
+                            </div>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[56px] p-12 shadow-2xl shadow-slate-200/40 dark:shadow-none min-h-[700px] relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32 rounded-full" />
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 blur-[100px] -ml-32 -mb-32 rounded-full" />
+                      <div className="space-y-8 px-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Pipeline Assets</h3>
+                          <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800 ml-6" />
+                        </div>
                         
-                        <TabsContent value="analysis" className="mt-0 space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-700 relative z-10">
+                        <div className="grid gap-8">
+                          {selectedType !== 'main' && selectedType !== 'detail' && (
+                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all group">
+                              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">Human Model</Label>
+                              {modelBase64 ? (
+                                <div className="relative rounded-[24px] overflow-hidden group/img shadow-2xl">
+                                  <img src={modelBase64} className="w-full aspect-[4/5] object-cover" alt="Model" />
+                                  <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[6px]">
+                                    <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setModelBase64('')}>REPLACE MODEL</Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div 
+                                  className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[28px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
+                                  onClick={() => modelInputRef.current?.click()}
+                                >
+                                  <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-5 shadow-sm group-hover:scale-110 transition-transform">
+                                    <Sparkles className="w-8 h-8 text-primary/40" />
+                                  </div>
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center px-6">Upload Portrait Reference</span>
+                                  <input type="file" ref={modelInputRef} className="hidden" accept="image/*" onChange={handleModelUpload} />
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {selectedType === 'scene' && (
+                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all group">
+                              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">Environment</Label>
+                              {sceneBase64 ? (
+                                <div className="relative rounded-[24px] overflow-hidden group/img shadow-2xl">
+                                  <img src={sceneBase64} className="w-full aspect-[4/5] object-cover" alt="Scene" />
+                                  <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[6px]">
+                                    <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setSceneBase64('')}>REPLACE SCENE</Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div 
+                                  className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[28px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
+                                  onClick={() => sceneInputRef.current?.click()}
+                                >
+                                  <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-5 shadow-sm group-hover:scale-110 transition-transform">
+                                    <ImageIcon className="w-8 h-8 text-primary/40" />
+                                  </div>
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center px-6">Upload Atmosphere Plate</span>
+                                  <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </aside>
+
+                    {/* Parameters area */}
+                    <div className="xl:col-span-9 lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[64px] shadow-2xl shadow-slate-200/50 dark:shadow-none min-h-[800px] relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/[0.03] blur-[120px] -mr-64 -mt-64 rounded-full" />
+                      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/[0.03] blur-[120px] -ml-64 -mb-64 rounded-full" />
+                      
+                      <div className="p-10 sm:p-16 relative z-10">
+                        <TabsContent value="analysis" className="mt-0 space-y-20 animate-in fade-in slide-in-from-right-8 duration-700">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
                             <EditableTextField label="Product Designation" value={analysis.productName} onChange={(v) => setAnalysis({...analysis, productName: v})} />
                             <EditableTextField label="Domain Category" value={analysis.category} onChange={(v) => setAnalysis({...analysis, category: v})} />
                             <EditableTextField label="Aesthetic Style" value={analysis.style} onChange={(v) => setAnalysis({...analysis, style: v})} />
-                            <EditableTextField label="Materiality" value={analysis.materials} onChange={(v) => setAnalysis({...analysis, materials: v})} />
+                            <EditableTextField label="Materiality Detail" value={analysis.materials} onChange={(v) => setAnalysis({...analysis, materials: v})} />
                           </div>
                           
                           <div className="h-px bg-slate-50 dark:bg-slate-800" />
                           
                           <div className="grid grid-cols-1 gap-12">
-                            <EditableTextField label="Consumer Demographic" value={analysis.targetAudience} onChange={(v) => setAnalysis({...analysis, targetAudience: v})} />
-                            <EditableTextField label="Product Narrative" value={analysis.description} onChange={(v) => setAnalysis({...analysis, description: v})} />
+                            <EditableTextField label="Core Consumer Archetype" value={analysis.targetAudience} onChange={(v) => setAnalysis({...analysis, targetAudience: v})} />
+                            <EditableTextField label="Product Narrative Focus" value={analysis.description} onChange={(v) => setAnalysis({...analysis, description: v})} />
                           </div>
                           
-                          <div className="space-y-12">
-                            <EditableTagList label="Color Identity" tags={analysis.colors} onChange={(v) => setAnalysis({...analysis, colors: v})} />
-                            <EditableTagList label="Value Propositions" tags={analysis.sellingPoints} onChange={(v) => setAnalysis({...analysis, sellingPoints: v})} />
-                            <EditableTagList label="Semantic Keywords" tags={analysis.keywords} onChange={(v) => setAnalysis({...analysis, keywords: v})} />
+                          <div className="space-y-16">
+                            <EditableTagList label="Color Schema" tags={analysis.colors} onChange={(v) => setAnalysis({...analysis, colors: v})} />
+                            <EditableTagList label="Core Value Props" tags={analysis.sellingPoints} onChange={(v) => setAnalysis({...analysis, sellingPoints: v})} />
+                            <EditableTagList label="Semantic Graph Keywords" tags={analysis.keywords} onChange={(v) => setAnalysis({...analysis, keywords: v})} />
                           </div>
                         </TabsContent>
                         
-                        <TabsContent value="config" className="mt-0 space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-700 relative z-10">
+                        <TabsContent value="config" className="mt-0 space-y-20 animate-in fade-in slide-in-from-right-8 duration-700">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
-                            <EditableTextField label="Core Object" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
-                            <EditableTextField label="Chroma Value" value={config.garmentColor} onChange={(v) => setConfig({...config, garmentColor: v})} />
-                            <EditableTextField label="Texture Rendering" value={config.garmentMaterial} onChange={(v) => setConfig({...config, garmentMaterial: v})} />
-                            <EditableTextField label="Art Direction" value={config.garmentStyle} onChange={(v) => setConfig({...config, garmentStyle: v})} />
+                            <EditableTextField label="Garment Object" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
+                            <EditableTextField label="Primary Tint" value={config.garmentColor} onChange={(v) => setConfig({...config, garmentColor: v})} />
+                            <EditableTextField label="Micro-Texture" value={config.garmentMaterial} onChange={(v) => setConfig({...config, garmentMaterial: v})} />
+                            <EditableTextField label="Artistic Direction" value={config.garmentStyle} onChange={(v) => setConfig({...config, garmentStyle: v})} />
                             {selectedType !== 'main' && selectedType !== 'detail' && <EditableTextField label="Persona Definition" value={config.modelStyle} onChange={(v) => setConfig({...config, modelStyle: v})} />}
-                            {(selectedType === 'scene' || selectedType === 'sellingPoint') && <EditableTextField label="Environmental Mood" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />}
+                            {(selectedType === 'scene' || selectedType === 'sellingPoint') && <EditableTextField label="Environmental Tone" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />}
                           </div>
 
                           <div className="h-px bg-slate-50 dark:bg-slate-800" />
 
-                          <div className="space-y-10">
+                          <div className="space-y-14">
                             <div className="flex items-center justify-between">
-                              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-2">
-                                Scene Orchestration <Sparkles className="w-3.5 h-3.5 text-primary" />
-                              </h4>
+                              <div className="flex items-center gap-4">
+                                <div className="w-2 h-6 bg-primary rounded-full" />
+                                <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">
+                                  Neural Scene Orchestrator
+                                </h4>
+                              </div>
                               {config.resolution === '4k' && (
-                                <span className="text-[9px] font-black uppercase text-primary px-3 py-1 bg-primary/5 border border-primary/10 rounded-full animate-pulse shadow-sm">Super-Resolution Active</span>
+                                <span className="text-[10px] font-black uppercase text-primary px-4 py-1.5 bg-primary/5 border border-primary/10 rounded-full animate-pulse shadow-sm">Super-Resolution Active</span>
                               )}
                             </div>
                             
                             {selectedType === 'scene' && (
-                              <div className="space-y-8">
-                                <EditableTextField label="Thematic Scene" value={config.sceneTheme} onChange={(v) => setConfig({...config, sceneTheme: v})} />
-                                <div className="flex flex-wrap gap-4">
+                              <div className="space-y-10">
+                                <EditableTextField label="Thematic Core" value={config.sceneTheme} onChange={(v) => setConfig({...config, sceneTheme: v})} />
+                                <div className="flex flex-wrap gap-5">
                                   {PRESET_SCENES.map((scene) => (
                                     <button 
                                       key={scene} 
-                                      className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border transition-all ${
+                                      className={`px-8 py-4 rounded-3xl text-[11px] font-black uppercase tracking-[0.25em] border transition-all duration-500 ${
                                         config.sceneTheme === scene 
-                                        ? 'bg-primary border-primary text-primary-foreground shadow-2xl shadow-primary/30 scale-105' 
-                                        : 'bg-white border-slate-100 hover:border-primary/20 text-slate-400 dark:bg-slate-800 dark:border-slate-700'
+                                        ? 'bg-primary border-primary text-primary-foreground shadow-[0_20px_50px_rgba(var(--primary-rgb),0.3)] scale-110 active:scale-95' 
+                                        : 'bg-white border-slate-100 hover:border-primary/30 text-slate-400 hover:text-slate-600 dark:bg-slate-800 dark:border-slate-700'
                                       }`}
                                       onClick={() => setConfig({...config, sceneTheme: scene})}
                                     >
@@ -695,21 +701,21 @@ export default function Page() {
                                     </button>
                                   ))}
                                 </div>
-                                <div className="flex items-start gap-5 p-6 bg-primary/5 rounded-[32px] border border-primary/10">
-                                   <div className="shrink-0 w-8 h-8 bg-primary/10 rounded-2xl flex items-center justify-center">
-                                      <Zap className="w-4 h-4 text-primary" />
+                                <div className="flex items-start gap-6 p-8 bg-primary/5 rounded-[40px] border border-primary/10 shadow-inner">
+                                   <div className="shrink-0 w-10 h-10 bg-primary/20 rounded-2xl flex items-center justify-center">
+                                      <Zap className="w-5 h-5 text-primary" />
                                    </div>
-                                   <p className="text-[11px] font-medium text-primary/70 leading-relaxed italic">
-                                      Expert Logic: 系统将优先融合您上传的自定义背景。预设场景将作为极佳的氛围补充，辅助 AI 构建更细致的自然光影交互模型。
+                                   <p className="text-[12px] font-medium text-primary/70 leading-relaxed italic">
+                                      Core Logic: 系统将优先融合您上传的自定义背景图。预设场景将作为视觉锚点，辅助 AI 构建更精细的自然光影交互模型。
                                    </p>
                                 </div>
                               </div>
                             )}
 
                             {selectedType === 'sellingPoint' && (
-                              <div className="space-y-8">
+                              <div className="space-y-10">
                                 <EditableTextField 
-                                  label="Primary Visual USP" 
+                                  label="Hero Visual Copy" 
                                   value={analysis?.sellingPoints?.[0] || ''} 
                                   onChange={(v) => {
                                     if (!analysis) return;
@@ -718,28 +724,28 @@ export default function Page() {
                                     setAnalysis({...analysis, sellingPoints: sps});
                                   }} 
                                 />
-                                <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-[32px] border border-slate-100 dark:border-slate-700">
-                                   <p className="text-[11px] font-medium text-slate-400 leading-relaxed">
-                                      该文本将作为视觉锚点，以高对比度与高层级排版呈现。建议保持在 12-20 个字符以内，以获得最佳渲染张力。
+                                <div className="p-8 bg-slate-50 dark:bg-slate-800 rounded-[40px] border border-slate-100 dark:border-slate-700 shadow-sm">
+                                   <p className="text-[12px] font-medium text-slate-400 leading-relaxed">
+                                      该文本将作为视觉焦点，以极高对比度呈现。建议保持在 12-20 字以内，以获得最佳渲染张力。
                                    </p>
                                 </div>
                               </div>
                             )}
 
                             {selectedType !== 'scene' && selectedType !== 'sellingPoint' && (
-                              <div className="py-24 flex flex-col items-center justify-center opacity-20 grayscale">
-                                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                                  <ImageIcon className="w-10 h-10" />
+                              <div className="py-24 flex flex-col items-center justify-center opacity-30 grayscale saturate-0">
+                                <div className="w-24 h-24 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-8 shadow-inner">
+                                  <ImageIcon className="w-12 h-12 text-slate-200" />
                                 </div>
-                                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-center">Adaptive Smart Backdrop<br/><span className="text-[9px] font-medium tracking-normal mt-2 block">Neural Network Automation Active</span></p>
+                                <p className="text-[12px] font-black uppercase tracking-[0.4em] text-center text-slate-300">Adaptive Neural Backdrop<br/><span className="text-[10px] font-medium tracking-normal mt-3 block text-slate-200">Full Automation Framework Enabled</span></p>
                               </div>
                             )}
                           </div>
                         </TabsContent>
                       </div>
-                    </Tabs>
+                    </div>
                   </div>
-                </div>
+                </Tabs>
               </div>
             )}
 
