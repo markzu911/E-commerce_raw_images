@@ -22,14 +22,21 @@ export async function normalizeInputImage(input: Buffer): Promise<Buffer> {
 /**
  * Normalizes result images for SaaS storage.
  */
-export async function normalizeImage(input: Buffer): Promise<Buffer> {
+export async function normalizeImage(input: Buffer, resolution: '1k' | '2k' | '4k' = '2k'): Promise<Buffer> {
+  const sizeMap = {
+    '1k': 1024,
+    '2k': 2048,
+    '4k': 4096
+  };
+  const size = sizeMap[resolution] || 2048;
+
   return sharp(input, { failOn: 'none' })
     .rotate()
     .resize({
-      width: 2048,
-      height: 2048,
+      width: size,
+      height: size,
       fit: 'inside',
-      withoutEnlargement: true
+      withoutEnlargement: false // Allow enlargement if requested resolution is higher than input
     })
     .jpeg({ quality: 90, progressive: true })
     .toBuffer();

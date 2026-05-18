@@ -155,7 +155,8 @@ export async function generateCustomImage(
   prompt: string,
   referenceImageBase64: string | null,
   userId: string,
-  toolId: string
+  toolId: string,
+  resolution: '1k' | '2k' | '4k' = '2k'
 ): Promise<{ imageUrl: string; recordId: string }> {
   const processedRef = referenceImageBase64 ? await resizeImage(referenceImageBase64) : null;
 
@@ -167,7 +168,8 @@ export async function generateCustomImage(
       userId,
       toolId,
       prompt,
-      referenceImageBase64: processedRef
+      referenceImageBase64: processedRef,
+      config: { resolution }
     })
   });
 

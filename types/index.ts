@@ -27,6 +27,7 @@ export interface PromptConfig {
   sellingPoint3: string;
   brandName: string;
   sceneTheme: string;
+  resolution?: '1k' | '2k' | '4k';
 }
 
 export interface TextOverlayConfig {

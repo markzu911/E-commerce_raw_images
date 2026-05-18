@@ -57,8 +57,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Post-process Result Image (PNG, normalization)
-    const normalizedBuffer = await normalizeImage(imageBuffer);
+    // 3. Post-process Result Image (JPEG, normalization)
+    const resolution = params.config?.resolution || '2k';
+    const normalizedBuffer = await normalizeImage(imageBuffer, resolution);
 
     // 4. Atomic Save to SAAS (Section 2.C & 3 - Consume -> Upload -> Commit)
     // Only happens if generation and processing succeeded

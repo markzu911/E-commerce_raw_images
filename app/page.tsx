@@ -67,7 +67,7 @@ export default function Page() {
   const [config, setConfig] = useState<PromptConfig>({
     garmentCategory: '', garmentColor: '', garmentMaterial: '', garmentStyle: '',
     modelStyle: '', sceneStyle: '', sellingPoint1: '', sellingPoint2: '', sellingPoint3: '',
-    brandName: '', sceneTheme: ''
+    brandName: '', sceneTheme: '', resolution: '2k'
   });
   
   const [selectedType, setSelectedType] = useState<string>('main');
@@ -77,6 +77,7 @@ export default function Page() {
 
   const [activeMode, setActiveMode] = useState<'smart' | 'custom'>('smart');
   const [customPrompt, setCustomPrompt] = useState<string>('');
+  const [customResolution, setCustomResolution] = useState<'1k' | '2k' | '4k'>('2k');
   const [customResult, setCustomResult] = useState<string>('');
 
   const [userId, setUserId] = useState<string>('');
@@ -186,6 +187,7 @@ export default function Page() {
         sellingPoint3: data.sellingPoints?.[2] || '',
         brandName: data.brandName || '',
         sceneTheme: data.posterTheme || '展示场景',
+        resolution: '2k'
       });
       setStep('result');
     } catch (err: any) {
@@ -274,7 +276,7 @@ export default function Page() {
     setCustomResult('');
     setStatusMsg({ type: 'loading', content: '正在生成并保存中...' });
     try {
-      const { imageUrl } = await generateCustomImage(customPrompt, customReferenceBase64 || null, userId, toolId);
+      const { imageUrl } = await generateCustomImage(customPrompt, customReferenceBase64 || null, userId, toolId, customResolution);
       setCustomResult(imageUrl);
       setStatusMsg({ type: 'success', content: '生成成功！' });
       // Refresh user integral
@@ -569,6 +571,30 @@ export default function Page() {
                         </TabsContent>
                         
                         <TabsContent value="config" className="mt-0 space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                          <div className="space-y-6">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                              输出清晰度 <Maximize2 className="w-3 h-3 text-primary" />
+                            </h4>
+                            <div className="flex gap-3">
+                              {(['1k', '2k', '4k'] as const).map((res) => (
+                                <button
+                                  key={res}
+                                  onClick={() => setConfig({ ...config, resolution: res })}
+                                  className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all ${
+                                    config.resolution === res
+                                      ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
+                                      : 'bg-white border-slate-200 text-slate-400 hover:border-primary/30'
+                                  }`}
+                                >
+                                  {res} {res === '4k' && '🔥'}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-medium">清晰度越高生成耗时越长，4K 画质建议在此模式下开启。</p>
+                          </div>
+
+                          <div className="h-px bg-slate-100 dark:bg-slate-800" />
+
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                             <EditableTextField label="服装类别" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
                             <EditableTextField label="服装颜色" value={config.garmentColor} onChange={(v) => setConfig({...config, garmentColor: v})} />
@@ -709,6 +735,25 @@ export default function Page() {
                   <p className="text-[11px] text-primary/70 font-medium leading-relaxed italic">
                     &quot;描述中包含：光影细节、材质表现、背景环境以及构图方式，能让 AI 理解得更透彻。上传参考图可帮助 AI 更好地把握整体基调。&quot;
                   </p>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-sm">
+                  <Label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 block">输出清晰度</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['1k', '2k', '4k'] as const).map((res) => (
+                      <button
+                        key={res}
+                        onClick={() => setCustomResolution(res)}
+                        className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${
+                          customResolution === res
+                            ? 'bg-primary border-primary text-primary-foreground'
+                            : 'bg-slate-50 border-slate-100 text-slate-400'
+                        }`}
+                      >
+                        {res}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
