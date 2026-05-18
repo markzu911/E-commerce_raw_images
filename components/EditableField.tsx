@@ -16,14 +16,14 @@ export function EditableTextField({
   label: string;
 }) {
   return (
-    <div className="flex flex-col gap-1.5 w-full group">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1.5 transition-colors group-focus-within:text-primary">
+    <div className="flex flex-col gap-2 w-full group">
+      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 transition-colors group-focus-within:text-primary">
         {label}
       </label>
       <Input 
         value={value} 
         onChange={(e) => onChange(e.target.value)} 
-        className="w-full text-sm bg-background border-slate-200 transition-all focus:ring-1 focus:ring-primary/20 focus:border-primary px-3 py-2 h-9 rounded-md"
+        className="w-full text-sm bg-slate-50/50 dark:bg-slate-950 border-slate-100 dark:border-slate-800 transition-all focus:ring-4 focus:ring-primary/5 focus:border-primary/50 px-4 py-2.5 h-11 rounded-2xl"
       />
     </div>
   );
@@ -52,28 +52,28 @@ export function EditableTagList({
   };
 
   return (
-    <div className="flex flex-col gap-3 p-4 bg-slate-50/50 border border-slate-200 rounded-lg transition-all focus-within:border-primary/30">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-0.5">
+    <div className="flex flex-col gap-4 p-6 bg-slate-50/30 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 rounded-3xl transition-all focus-within:border-primary/20">
+      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
         {label}
       </label>
-      <div className="flex flex-wrap gap-2 min-h-[2rem]">
+      <div className="flex flex-wrap gap-2.5 min-h-[2.5rem]">
         {tags.map((tag, idx) => (
-          <Badge key={idx} variant="secondary" className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-white border-slate-200 hover:bg-slate-50 group">
+          <Badge key={idx} variant="secondary" className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:bg-white/80 group">
             {tag}
             <X 
-              className="w-3 h-3 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
+              className="w-3.5 h-3.5 cursor-pointer text-slate-300 hover:text-red-500 transition-colors" 
               onClick={() => removeTag(idx)} 
             />
           </Badge>
         ))}
       </div>
-      <div className="flex gap-2 mt-1">
+      <div className="flex gap-2">
         <div className="relative flex-1">
           <Input 
             value={newTag} 
             onChange={(e) => setNewTag(e.target.value)} 
-            className="h-8 text-xs bg-white border-slate-200 focus:ring-1 focus:ring-primary/10"
-            placeholder="输入并回车..."
+            className="h-10 text-xs bg-white dark:bg-slate-950 border-slate-100 dark:border-slate-800 rounded-xl focus:ring-4 focus:ring-primary/5"
+            placeholder="Add new tag..."
             onKeyDown={(e) => e.key === 'Enter' && addTag()}
           />
         </div>
@@ -81,9 +81,9 @@ export function EditableTagList({
           variant="outline"
           size="sm"
           onClick={addTag}
-          className="h-8 px-3 text-xs bg-primary text-primary-foreground hover:bg-primary/90 border-transparent"
+          className="h-10 px-5 text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 border-transparent rounded-xl"
         >
-          <Plus className="w-3 h-3 mr-1" /> 添加
+          <Plus className="w-3.5 h-3.5 mr-1" /> Add
         </Button>
       </div>
     </div>

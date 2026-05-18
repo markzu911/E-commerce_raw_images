@@ -293,32 +293,35 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] dark:bg-slate-950 pb-20">
-      <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 px-8 py-3 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border-b border-slate-100 dark:border-slate-800 px-10 py-4 flex items-center justify-between sticky top-0 z-50 transition-all">
+        <div className="flex items-center gap-10">
+          <div className="flex items-center gap-4 group cursor-pointer">
+            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30 group-hover:rotate-6 transition-transform">
+              <Sparkles className="w-6 h-6 text-primary-foreground" />
             </div>
-            <h1 className="text-sm font-black tracking-tighter uppercase hidden sm:block">FashionAI</h1>
+            <div className="flex flex-col">
+              <h1 className="text-sm font-black tracking-[0.3em] uppercase leading-none mb-1">FashionAI</h1>
+              <span className="text-[8px] font-bold text-primary/60 tracking-widest uppercase leading-none">Studio Pro v2</span>
+            </div>
           </div>
           
-          <nav className="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+          <nav className="flex items-center p-1 bg-slate-100/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100/50">
              <button 
                onClick={() => setActiveMode('smart')}
-               className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+               className={`px-6 py-2 rounded-[14px] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${
                  activeMode === 'smart' 
-                 ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' 
-                 : 'text-muted-foreground hover:text-foreground'
+                 ? 'bg-white dark:bg-slate-700 shadow-md text-primary scale-[1.02]' 
+                 : 'text-slate-400 hover:text-slate-600'
                }`}
              >
                智能生图
              </button>
              <button 
                onClick={() => setActiveMode('custom')}
-               className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+               className={`px-6 py-2 rounded-[14px] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${
                  activeMode === 'custom' 
-                 ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' 
-                 : 'text-muted-foreground hover:text-foreground'
+                 ? 'bg-white dark:bg-slate-700 shadow-md text-primary scale-[1.02]' 
+                 : 'text-slate-400 hover:text-slate-600'
                }`}
              >
                自由生图
@@ -326,27 +329,27 @@ export default function Page() {
           </nav>
         </div>
         
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-8">
           {activeMode === 'smart' && (
-            <div className="hidden lg:flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${step === 'upload' ? 'text-primary' : 'text-slate-300'}`}>01 上传</span>
-                <div className="w-4 h-[1px] bg-slate-200" />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${step === 'select' ? 'text-primary' : 'text-slate-300'}`}>02 选择</span>
-                <div className="w-4 h-[1px] bg-slate-200" />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${(step === 'analyzing' || step === 'result') ? 'text-primary' : 'text-slate-300'}`}>03 配置</span>
-                <div className="w-4 h-[1px] bg-slate-200" />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${(step === 'generating' || step === 'done') ? 'text-primary' : 'text-slate-300'}`}>04 生成</span>
+            <div className="hidden xl:flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${step === 'upload' ? 'text-primary' : 'text-slate-300'}`}>01 Upload</span>
+                <div className={`w-8 h-[2px] rounded-full transition-colors ${step === 'upload' ? 'bg-primary/20' : 'bg-slate-100'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${step === 'select' ? 'text-primary' : 'text-slate-300'}`}>02 Style</span>
+                <div className={`w-8 h-[2px] rounded-full transition-colors ${step === 'select' ? 'bg-primary/20' : 'bg-slate-100'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${(step === 'analyzing' || step === 'result') ? 'text-primary' : 'text-slate-300'}`}>03 Config</span>
+                <div className={`w-8 h-[2px] rounded-full transition-colors ${(step === 'analyzing' || step === 'result') ? 'bg-primary/20' : 'bg-slate-100'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${(step === 'generating' || step === 'done') ? 'text-primary' : 'text-slate-300'}`}>04 Export</span>
               </div>
             </div>
           )}
 
           {userData && (
-            <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
+            <div className="flex items-center gap-4 pl-8 border-l border-slate-100 h-10">
               <div className="flex flex-col items-end">
-                <span className="text-[9px] font-black uppercase text-slate-400 tracking-tighter leading-none mb-1">{userData.name}</span>
-                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/5 rounded-full border border-primary/10">
-                  <span className="text-xs font-black text-primary leading-none">{userData.integral} <small className="opacity-60">PTS</small></span>
+                <span className="text-[10px] font-black uppercase text-slate-800 dark:text-white tracking-widest leading-none mb-1.5">{userData.name}</span>
+                <div className="flex items-center gap-2 px-3 py-1 bg-slate-900 dark:bg-primary rounded-full shadow-lg shadow-black/10">
+                  <span className="text-[10px] font-black text-white leading-none tracking-widest">{userData.integral} <small className="opacity-50">PTS</small></span>
                 </div>
               </div>
             </div>
@@ -385,60 +388,85 @@ export default function Page() {
         {activeMode === 'smart' && (
           <>
             {step === 'upload' && (
-              <div className="max-w-4xl mx-auto">
-                <div className="flex flex-col items-center justify-center p-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[40px] bg-white dark:bg-slate-900/50 hover:border-primary/50 transition-all group cursor-pointer"
-                     onClick={() => fileInputRef.current?.click()}>
-                  <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-                    <Upload className="w-8 h-8 text-primary" />
+              <div className="max-w-4xl mx-auto py-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <div className="relative group p-1.5 rounded-[56px] bg-gradient-to-br from-slate-100 to-transparent dark:from-slate-800">
+                  <div className="absolute -inset-4 bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="relative flex flex-col items-center justify-center p-24 border border-slate-100 dark:border-slate-800 rounded-[48px] bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-none hover:border-primary/20 transition-all cursor-pointer"
+                       onClick={() => fileInputRef.current?.click()}>
+                    <div className="w-24 h-24 bg-primary/5 rounded-[40px] flex items-center justify-center mb-10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                      <div className="w-16 h-16 bg-primary rounded-[32px] flex items-center justify-center shadow-xl shadow-primary/30">
+                        <Upload className="w-7 h-7 text-white" />
+                      </div>
+                    </div>
+                    <h2 className="text-4xl font-black tracking-tight mb-4 text-center">开始您的 AI 创作之旅</h2>
+                    <p className="text-slate-400 font-medium mb-12 text-center max-w-sm leading-relaxed">
+                      上传服装单品，Gemini 3.1 Pro 将精准捕捉面料、剪裁与风格，定制专属电商视觉大片。
+                    </p>
+                    <Button size="lg" className="rounded-full px-12 h-16 font-black text-lg shadow-2xl shadow-primary/20 group-hover:scale-105 transition-transform">
+                      立即上传单品
+                    </Button>
+                    <div className="mt-12 flex items-center gap-4 opacity-30 grayscale">
+                      <span className="text-[10px] font-black uppercase tracking-widest">Supports Jpeg / Png / Webp</span>
+                    </div>
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
                   </div>
-                  <h2 className="text-3xl font-black tracking-tight mb-3">上传您的服装单品</h2>
-                  <p className="text-slate-400 font-medium mb-10 text-center max-w-sm">AI 将自动识别服装细节、材质与风格，\n并为您生成专业级电商素材。</p>
-                  <Button size="lg" className="rounded-full px-10 h-14 font-bold text-lg shadow-xl shadow-primary/20">
-                    选择照片
-                  </Button>
-                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
                 </div>
               </div>
             )}
 
             {step === 'select' && (
-              <div className="max-w-5xl mx-auto py-12">
+              <div className="max-w-6xl mx-auto py-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
                 <div className="text-center mb-16">
-                  <h2 className="text-4xl font-black tracking-tight mb-4">选择目标画幅</h2>
-                  <p className="text-slate-400 font-medium tracking-tight">根据您的投放渠道选择最合适的图片类型</p>
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10 mb-6">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Creative Direction</span>
+                  </div>
+                  <h2 className="text-5xl font-black tracking-tight mb-6">定义输出画幅与风格</h2>
+                  <p className="text-slate-400 font-medium tracking-tight text-lg max-w-2xl mx-auto">
+                    每一张生成的图片都经过视觉层级的深度优化，您可以针对不同的销售场景选择最佳画效。
+                  </p>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
                   {ALL_TYPES.map(type => (
                     <button 
                       key={type.id} 
                       onClick={() => setSelectedType(type.id)}
-                      className={`relative p-8 rounded-[32px] border-2 text-left transition-all group ${
+                      className={`relative p-10 rounded-[48px] border-2 text-left transition-all group duration-500 ${
                         selectedType === type.id 
-                        ? 'border-primary bg-primary/5 shadow-xl shadow-primary/5' 
-                        : 'border-slate-100 bg-white hover:border-slate-200 shadow-sm'
+                        ? 'border-primary bg-primary/[0.02] shadow-2xl shadow-primary/5 scale-[1.02]' 
+                        : 'border-slate-50 bg-white hover:border-slate-100 hover:shadow-xl hover:shadow-slate-100/50'
                       }`}
                     >
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors ${
-                        selectedType === type.id ? 'bg-primary text-primary-foreground' : 'bg-slate-50 text-slate-400'
+                      <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center mb-8 transition-all duration-500 shadow-lg ${
+                        selectedType === type.id ? 'bg-primary text-primary-foreground shadow-primary/20 rotate-6' : 'bg-slate-50 text-slate-400 shadow-none'
                       }`}>
-                         {type.id === 'main' && <ImageIcon className="w-6 h-6" />}
-                         {type.id === 'detail' && <Maximize2 className="w-6 h-6" />}
-                         {type.id === 'sellingPoint' && <Sparkles className="w-6 h-6" />}
-                         {type.id === 'scene' && <ImageIcon className="w-6 h-6" />}
+                         {type.id === 'main' && <ImageIcon className="w-8 h-8" />}
+                         {type.id === 'detail' && <Maximize2 className="w-8 h-8" />}
+                         {type.id === 'sellingPoint' && <Sparkles className="w-8 h-8" />}
+                         {type.id === 'scene' && <ImageIcon className="w-8 h-8" />}
                       </div>
-                      <h3 className={`text-lg font-bold mb-2 tracking-tight ${selectedType === type.id ? 'text-primary' : ''}`}>
+                      <h3 className={`text-xl font-black mb-3 tracking-tight transition-colors ${selectedType === type.id ? 'text-primary' : 'text-slate-800'}`}>
                         {type.label}
                       </h3>
-                      <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                        {type.id === 'main' && '标准 800x800 正方形，适合淘宝/拼多多主图'}
-                        {type.id === 'detail' && '高清展示单品细节，突出质感与做工'}
-                        {type.id === 'sellingPoint' && '带文案排版，直击用户痛点，提升转化'}
-                        {type.id === 'scene' && '自然光影场景，打造更有温度的品牌感'}
+                      <p className="text-[11px] text-slate-400 font-medium leading-relaxed mb-6">
+                        {type.id === 'main' && '标准 1:1 特写。针对主图展示优化，背景通透、产品饱满。'}
+                        {type.id === 'detail' && '高清微距感。细腻捕捉针脚、面料纹理与辅料细节。'}
+                        {type.id === 'sellingPoint' && '广告级排版。结合核心卖点，打造极具沉浸感的营销视觉。'}
+                        {type.id === 'scene' && '自然光影律动。模拟真实户内/户外环境，赋予商品温度。'}
                       </p>
+                      
+                      <div className="flex items-center gap-2">
+                         <div className={`w-8 h-[2px] rounded-full transition-colors ${selectedType === type.id ? 'bg-primary' : 'bg-slate-100'}`} />
+                         <span className={`text-[10px] font-black uppercase tracking-widest ${selectedType === type.id ? 'text-primary' : 'text-slate-300'}`}>
+                           {selectedType === type.id ? 'Selected' : 'Select Style'}
+                         </span>
+                      </div>
+
                       {selectedType === type.id && (
-                        <div className="absolute top-6 right-6">
-                          <CheckCircle className="w-5 h-5 text-primary" />
+                        <div className="absolute top-8 right-8">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-5 h-5 text-primary" />
+                          </div>
                         </div>
                       )}
                     </button>
@@ -446,8 +474,8 @@ export default function Page() {
                 </div>
 
                 <div className="flex justify-center">
-                  <Button size="lg" onClick={startAnalysis} className="rounded-full px-16 h-14 font-bold text-lg">
-                    确认并分析 <Sparkles className="w-5 h-5 ml-2" />
+                  <Button size="lg" onClick={startAnalysis} className="rounded-full px-20 h-16 font-black text-xl shadow-[0_20px_50px_rgba(var(--primary-rgb),0.2)] hover:scale-105 transition-all">
+                    同步数据并分析 <Sparkles className="w-6 h-6 ml-3" />
                   </Button>
                 </div>
               </div>
@@ -462,181 +490,211 @@ export default function Page() {
             )}
 
             {step === 'result' && analysis && (
-              <div className="flex flex-col lg:flex-row gap-8 items-start">
-                <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-24 space-y-6">
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">参考图片</span>
-                    </div>
-                    <div className="p-4">
-                      <img src={imageBase64} className="w-full aspect-[3/4] object-cover rounded-xl shadow-sm border border-slate-100" alt="Original" />
+              <div className="flex flex-col lg:flex-row gap-12 items-start max-w-7xl mx-auto">
+                {/* Fixed Sidebar for Reference & Resources */}
+                <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-24 space-y-8">
+                  <div className="group relative">
+                    <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-transparent rounded-[32px] blur opacity-25" />
+                    <div className="relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] overflow-hidden shadow-sm">
+                      <div className="px-5 py-4 bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Reference Photo</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                      </div>
+                      <div className="p-5">
+                        <img src={imageBase64} className="w-full aspect-[3/4] object-cover rounded-2xl shadow-sm border border-slate-50" alt="Original" />
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">资源叠加</h3>
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 px-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Assets Layering</h3>
+                    </div>
                     
-                    {selectedType !== 'main' && selectedType !== 'detail' && (
-                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm group">
-                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 block">目标模特</Label>
-                        {modelBase64 ? (
-                          <div className="relative rounded-lg overflow-hidden group">
-                            <img src={modelBase64} className="w-full aspect-square object-cover" alt="Model" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Button size="sm" variant="secondary" onClick={() => setModelBase64('')}>移除</Button>
+                    <div className="grid gap-4">
+                      {selectedType !== 'main' && selectedType !== 'detail' && (
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow group">
+                          <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 block">Target Model</Label>
+                          {modelBase64 ? (
+                            <div className="relative rounded-2xl overflow-hidden group/img">
+                              <img src={modelBase64} className="w-full aspect-[4/5] object-cover" alt="Model" />
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
+                                <Button size="sm" variant="secondary" className="rounded-full font-bold" onClick={() => setModelBase64('')}>移除模特</Button>
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <div 
-                            className="aspect-square border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950 transition-colors hover:border-primary/40 hover:bg-slate-100/50 cursor-pointer" 
-                            onClick={() => modelInputRef.current?.click()}
-                          >
-                            <ImageIcon className="w-6 h-6 text-slate-300 mb-2" />
-                            <span className="text-[10px] font-bold text-muted-foreground">上传模特图</span>
-                            <input type="file" ref={modelInputRef} className="hidden" accept="image/*" onChange={handleModelUpload} />
-                          </div>
-                        )}
-                      </div>
-                    )}
+                          ) : (
+                            <div 
+                              className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-2xl bg-slate-50/30 dark:bg-slate-950 transition-all hover:border-primary/30 hover:bg-slate-50 cursor-pointer" 
+                              onClick={() => modelInputRef.current?.click()}
+                            >
+                              <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center mb-3 shadow-sm">
+                                <Sparkles className="w-5 h-5 text-slate-300" />
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">上传自定义模特</span>
+                              <input type="file" ref={modelInputRef} className="hidden" accept="image/*" onChange={handleModelUpload} />
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-                    {selectedType === 'scene' && (
-                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm group">
-                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 block">自定义背景</Label>
-                        {sceneBase64 ? (
-                          <div className="relative rounded-lg overflow-hidden group">
-                            <img src={sceneBase64} className="w-full aspect-square object-cover" alt="Scene" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Button size="sm" variant="secondary" onClick={() => setSceneBase64('')}>移除</Button>
+                      {selectedType === 'scene' && (
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow group">
+                          <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 block">Custom Backdrop</Label>
+                          {sceneBase64 ? (
+                            <div className="relative rounded-2xl overflow-hidden group/img">
+                              <img src={sceneBase64} className="w-full aspect-[4/5] object-cover" alt="Scene" />
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
+                                <Button size="sm" variant="secondary" className="rounded-full font-bold" onClick={() => setSceneBase64('')}>移除背景</Button>
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <div 
-                            className="aspect-square border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950 transition-colors hover:border-primary/40 hover:bg-slate-100/50 cursor-pointer" 
-                            onClick={() => sceneInputRef.current?.click()}
-                          >
-                            <ImageIcon className="w-6 h-6 text-slate-300 mb-2" />
-                            <span className="text-[10px] font-bold text-muted-foreground">上传背景图</span>
-                            <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
-                          </div>
-                        )}
-                      </div>
-                    )}
+                          ) : (
+                            <div 
+                              className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-2xl bg-slate-50/30 dark:bg-slate-950 transition-all hover:border-primary/30 hover:bg-slate-50 cursor-pointer" 
+                              onClick={() => sceneInputRef.current?.click()}
+                            >
+                              <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center mb-3 shadow-sm">
+                                <ImageIcon className="w-5 h-5 text-slate-300" />
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">上传氛围场景</span>
+                              <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </aside>
 
-                <div className="flex-1 space-y-6">
-                  <div className="flex items-center justify-between mb-2">
+                {/* Main Content Area */}
+                <div className="flex-1 space-y-8">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-100">
                     <div>
-                      <h2 className="text-xl font-bold tracking-tight">配置生成详情</h2>
-                      <p className="text-sm text-muted-foreground">微调 AI 提取的数据或直接编辑提示词</p>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <div className="w-6 h-px bg-primary" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Configuration Phase</span>
+                      </div>
+                      <h2 className="text-3xl font-black tracking-tight mb-2">定制生成参数</h2>
+                      <p className="text-sm text-slate-400 font-medium tracking-tight">AI 已识别单品特征，您可以继续微调输出细节。</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                       <Button variant="outline" size="sm" onClick={() => setStep('select')} className="text-xs font-semibold">上一步</Button>
-                       <Button onClick={handleGenerate} size="sm" className="px-6 font-bold">
-                         开始生成 <Zap className="w-3.5 h-3.5 ml-1.5 fill-current" />
+                    <div className="flex items-center gap-3">
+                       <Button variant="ghost" className="rounded-full px-6 font-bold text-slate-400" onClick={() => setStep('select')}>
+                         返回上一步
+                       </Button>
+                       <Button onClick={handleGenerate} className="rounded-full px-8 h-12 font-black shadow-xl shadow-primary/20">
+                         开始精炼生成 <Zap className="w-4 h-4 ml-2 fill-current" />
                        </Button>
                     </div>
                   </div>
 
-                  <Card className="border-none shadow-none bg-transparent">
+                  <div className="relative">
                     <Tabs defaultValue="analysis" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl h-12 mb-8">
-                        <TabsTrigger value="analysis" className="rounded-xl font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                          AI 提取数据
-                        </TabsTrigger>
-                        <TabsTrigger value="config" className="rounded-xl font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                          提示词微调
-                        </TabsTrigger>
-                      </TabsList>
+                      <div className="flex items-center justify-between mb-8">
+                        <TabsList className="bg-slate-100/50 dark:bg-slate-900/50 p-1 rounded-2xl h-11">
+                          <TabsTrigger value="analysis" className="rounded-xl px-8 font-black text-[10px] uppercase tracking-[0.15em] data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary">
+                            Data Analysis
+                          </TabsTrigger>
+                          <TabsTrigger value="config" className="rounded-xl px-8 font-black text-[10px] uppercase tracking-[0.15em] data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary">
+                            Prompts Fine-tune
+                          </TabsTrigger>
+                        </TabsList>
+                        
+                        <div className="hidden sm:flex items-center gap-4 px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">Resolution</span>
+                          <div className="flex gap-2">
+                            {(['1k', '2k', '4k'] as const).map((res) => (
+                              <button
+                                key={res}
+                                onClick={() => setConfig({ ...config, resolution: res })}
+                                className={`text-[10px] font-bold uppercase transition-all ${
+                                  config.resolution === res ? 'text-primary' : 'text-slate-300 hover:text-slate-500'
+                                }`}
+                              >
+                                {res}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                       
-                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm">
-                        <TabsContent value="analysis" className="mt-0 space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                            <EditableTextField label="商品名称" value={analysis.productName} onChange={(v) => setAnalysis({...analysis, productName: v})} />
-                            <EditableTextField label="类别" value={analysis.category} onChange={(v) => setAnalysis({...analysis, category: v})} />
-                            <EditableTextField label="风格" value={analysis.style} onChange={(v) => setAnalysis({...analysis, style: v})} />
-                            <EditableTextField label="主要材质" value={analysis.materials} onChange={(v) => setAnalysis({...analysis, materials: v})} />
+                      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-10 shadow-sm min-h-[600px]">
+                        <TabsContent value="analysis" className="mt-0 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
+                            <EditableTextField label="Product Name" value={analysis.productName} onChange={(v) => setAnalysis({...analysis, productName: v})} />
+                            <EditableTextField label="Category" value={analysis.category} onChange={(v) => setAnalysis({...analysis, category: v})} />
+                            <EditableTextField label="Style Vibes" value={analysis.style} onChange={(v) => setAnalysis({...analysis, style: v})} />
+                            <EditableTextField label="Primary Fabric" value={analysis.materials} onChange={(v) => setAnalysis({...analysis, materials: v})} />
                           </div>
                           
-                          <div className="h-px bg-slate-100 dark:bg-slate-800" />
+                          <div className="h-px bg-slate-50 dark:bg-slate-800" />
                           
-                          <EditableTextField label="目标受众" value={analysis.targetAudience} onChange={(v) => setAnalysis({...analysis, targetAudience: v})} />
-                          <EditableTextField label="核心描述" value={analysis.description} onChange={(v) => setAnalysis({...analysis, description: v})} />
+                          <div className="grid grid-cols-1 gap-10">
+                            <EditableTextField label="Target Audience" value={analysis.targetAudience} onChange={(v) => setAnalysis({...analysis, targetAudience: v})} />
+                            <EditableTextField label="Core Description" value={analysis.description} onChange={(v) => setAnalysis({...analysis, description: v})} />
+                          </div>
                           
-                          <div className="grid grid-cols-1 gap-8">
-                            <EditableTagList label="商品配色" tags={analysis.colors} onChange={(v) => setAnalysis({...analysis, colors: v})} />
-                            <EditableTagList label="核心卖点" tags={analysis.sellingPoints} onChange={(v) => setAnalysis({...analysis, sellingPoints: v})} />
-                            <EditableTagList label="视觉关键词" tags={analysis.keywords} onChange={(v) => setAnalysis({...analysis, keywords: v})} />
+                          <div className="space-y-10">
+                            <EditableTagList label="Color Palette" tags={analysis.colors} onChange={(v) => setAnalysis({...analysis, colors: v})} />
+                            <EditableTagList label="Unique Selling Points" tags={analysis.sellingPoints} onChange={(v) => setAnalysis({...analysis, sellingPoints: v})} />
+                            <EditableTagList label="Visual Keywords" tags={analysis.keywords} onChange={(v) => setAnalysis({...analysis, keywords: v})} />
                           </div>
                         </TabsContent>
                         
-                        <TabsContent value="config" className="mt-0 space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                          <div className="space-y-6">
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                              输出清晰度 <Maximize2 className="w-3 h-3 text-primary" />
-                            </h4>
-                            <div className="flex gap-3">
-                              {(['1k', '2k', '4k'] as const).map((res) => (
-                                <button
-                                  key={res}
-                                  onClick={() => setConfig({ ...config, resolution: res })}
-                                  className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all ${
-                                    config.resolution === res
-                                      ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
-                                      : 'bg-white border-slate-200 text-slate-400 hover:border-primary/30'
-                                  }`}
-                                >
-                                  {res} {res === '4k' && '🔥'}
-                                </button>
-                              ))}
+                        <TabsContent value="config" className="mt-0 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
+                            <EditableTextField label="Garment Type" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
+                            <EditableTextField label="Output Color" value={config.garmentColor} onChange={(v) => setConfig({...config, garmentColor: v})} />
+                            <EditableTextField label="Material Rendering" value={config.garmentMaterial} onChange={(v) => setConfig({...config, garmentMaterial: v})} />
+                            <EditableTextField label="Direction Style" value={config.garmentStyle} onChange={(v) => setConfig({...config, garmentStyle: v})} />
+                            {selectedType !== 'main' && selectedType !== 'detail' && <EditableTextField label="Model Persona" value={config.modelStyle} onChange={(v) => setConfig({...config, modelStyle: v})} />}
+                            {(selectedType === 'scene' || selectedType === 'sellingPoint') && <EditableTextField label="Environment Mood" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />}
+                          </div>
+
+                          <div className="h-px bg-slate-50 dark:bg-slate-800" />
+
+                          <div className="space-y-8">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                                Dynamic Themes <Sparkles className="w-3.5 h-3.5 text-primary" />
+                              </h4>
+                              {config.resolution === '4k' && (
+                                <span className="text-[9px] font-black uppercase text-primary px-2 py-0.5 bg-primary/5 border border-primary/10 rounded-full animate-pulse">4K Rendering Active</span>
+                              )}
                             </div>
-                            <p className="text-[10px] text-slate-400 font-medium">清晰度越高生成耗时越长，4K 画质建议在此模式下开启。</p>
-                          </div>
-
-                          <div className="h-px bg-slate-100 dark:bg-slate-800" />
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                            <EditableTextField label="服装类别" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
-                            <EditableTextField label="服装颜色" value={config.garmentColor} onChange={(v) => setConfig({...config, garmentColor: v})} />
-                            <EditableTextField label="服装材质" value={config.garmentMaterial} onChange={(v) => setConfig({...config, garmentMaterial: v})} />
-                            <EditableTextField label="风格取向" value={config.garmentStyle} onChange={(v) => setConfig({...config, garmentStyle: v})} />
-                            {selectedType !== 'main' && selectedType !== 'detail' && <EditableTextField label="模特气质" value={config.modelStyle} onChange={(v) => setConfig({...config, modelStyle: v})} />}
-                            {(selectedType === 'scene' || selectedType === 'sellingPoint') && <EditableTextField label="期望场景" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />}
-                          </div>
-
-                          <div className="h-px bg-slate-100 dark:bg-slate-800" />
-
-                          <div className="space-y-6">
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                              场景与动态主题 <Sparkles className="w-3 h-3" />
-                            </h4>
+                            
                             {selectedType === 'scene' && (
-                              <div className="space-y-4">
-                                <EditableTextField label="场景主题" value={config.sceneTheme} onChange={(v) => setConfig({...config, sceneTheme: v})} />
-                                <div className="flex flex-wrap gap-2">
+                              <div className="space-y-6">
+                                <EditableTextField label="Scene Theme" value={config.sceneTheme} onChange={(v) => setConfig({...config, sceneTheme: v})} />
+                                <div className="flex flex-wrap gap-2.5">
                                   {PRESET_SCENES.map((scene) => (
                                     <button 
                                       key={scene} 
-                                      className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all ${
+                                      className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${
                                         config.sceneTheme === scene 
-                                        ? 'bg-primary border-primary text-primary-foreground shadow-md' 
-                                        : 'bg-white border-slate-200 hover:border-primary/50 text-muted-foreground'
+                                        ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20' 
+                                        : 'bg-white border-slate-100 hover:border-primary/20 text-slate-400'
                                       }`}
                                       onClick={() => setConfig({...config, sceneTheme: scene})}
                                     >
-                                      {scene}
+                                      {scene.split('(')[0].trim()}
                                     </button>
                                   ))}
                                 </div>
-                                <p className="text-[10px] font-medium text-muted-foreground bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                   💡 提示：您可以选择上方的预设场景，或者手动输入您想要的场景主题。如果您在左侧上传了自定义背景图，将优先使用您上传的图片还原。
-                                </p>
+                                <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                                   <div className="shrink-0 w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center">
+                                      <Zap className="w-3 h-3 text-primary" />
+                                   </div>
+                                   <p className="text-[10px] font-medium text-primary/70 leading-relaxed italic">
+                                      Tip: 您可以选择上方的预设场景，或者手动输入您想要的场景主题。如果您在左侧上传了自定义背景图，将优先使用您上传的图片还原。
+                                   </p>
+                                </div>
                               </div>
                             )}
+
                             {selectedType === 'sellingPoint' && (
-                              <div className="space-y-4">
+                              <div className="space-y-6">
                                 <EditableTextField 
-                                  label="首要卖点文本" 
+                                  label="Primary USP Text" 
                                   value={analysis?.sellingPoints?.[0] || ''} 
                                   onChange={(v) => {
                                     if (!analysis) return;
@@ -645,23 +703,29 @@ export default function Page() {
                                     setAnalysis({...analysis, sellingPoints: sps});
                                   }} 
                                 />
-                                <p className="text-[10px] font-medium text-muted-foreground">该文本将被渲染在卖点图的视觉层级最高处。</p>
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                   <p className="text-[10px] font-medium text-slate-400 leading-relaxed">
+                                      该文本将被渲染在卖点图的视觉层级最高处。请确保内容简练、有力，能瞬间抓住消费者眼球。
+                                   </p>
+                                </div>
                               </div>
                             )}
+
                             {selectedType !== 'scene' && selectedType !== 'sellingPoint' && (
-                              <div className="py-12 flex flex-col items-center justify-center opacity-40">
-                                <ImageIcon className="w-8 h-8 mb-2" />
-                                <p className="text-xs font-medium">当前类型采用标准自适应背景，无需额外主题配置</p>
+                              <div className="py-20 flex flex-col items-center justify-center opacity-30 grayscale">
+                                <ImageIcon className="w-12 h-12 mb-4" />
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-center">Adaptive Smart Backdrop<br/><span className="text-[8px] font-medium tracking-normal mt-1 block">Full Automation Enabled</span></p>
                               </div>
                             )}
                           </div>
                         </TabsContent>
                       </div>
                     </Tabs>
-                  </Card>
+                  </div>
                 </div>
               </div>
             )}
+
 
         {(step === 'generating' || step === 'done') && (
           <div className="space-y-6">
