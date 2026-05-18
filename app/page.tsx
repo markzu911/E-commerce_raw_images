@@ -290,66 +290,69 @@ export default function Page() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-      <header className="bg-white dark:bg-slate-900 border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-6 w-1/3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold hidden sm:block">AI 服装电商生图工具</h1>
+    <div className="min-h-screen bg-[#FDFDFD] dark:bg-slate-950 pb-20">
+      <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 px-8 py-3 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <h1 className="text-sm font-black tracking-tighter uppercase hidden sm:block">FashionAI</h1>
           </div>
-          <Tabs value={activeMode} onValueChange={(v) => setActiveMode(v as 'smart'|'custom')} className="w-[200px]">
-             <TabsList>
-               <TabsTrigger value="smart">智能生图</TabsTrigger>
-               <TabsTrigger value="custom">自由生图</TabsTrigger>
-             </TabsList>
-          </Tabs>
+          
+          <nav className="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+             <button 
+               onClick={() => setActiveMode('smart')}
+               className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                 activeMode === 'smart' 
+                 ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' 
+                 : 'text-muted-foreground hover:text-foreground'
+               }`}
+             >
+               智能生图
+             </button>
+             <button 
+               onClick={() => setActiveMode('custom')}
+               className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                 activeMode === 'custom' 
+                 ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' 
+                 : 'text-muted-foreground hover:text-foreground'
+               }`}
+             >
+               自由生图
+             </button>
+          </nav>
         </div>
         
-        <div className="flex items-center justify-center gap-4 text-sm font-medium w-1/3 hidden md:flex">
+        <div className="flex items-center gap-6">
           {activeMode === 'smart' && (
-            <>
-              <span className={step === 'upload' ? 'text-primary' : 'text-muted-foreground'}>1. 上传</span>
-              <span>→</span>
-              <span className={step === 'select' ? 'text-primary' : 'text-muted-foreground'}>2. 选择</span>
-              <span>→</span>
-              <span className={(step === 'analyzing' || step === 'result') ? 'text-primary' : 'text-muted-foreground'}>3. 配置</span>
-              <span>→</span>
-              <span className={(step === 'generating' || step === 'done') ? 'text-primary' : 'text-muted-foreground'}>4. 生成</span>
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center justify-end gap-3 w-1/3 min-w-0">
-          {userData && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-semibold whitespace-nowrap">
-              <span className="text-muted-foreground">{userData.name}</span>
-              <div className="w-px h-3 bg-slate-300 mx-1" />
-              <span className="text-primary">{userData.integral} 积分</span>
+            <div className="hidden lg:flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${step === 'upload' ? 'text-primary' : 'text-slate-300'}`}>01 上传</span>
+                <div className="w-4 h-[1px] bg-slate-200" />
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${step === 'select' ? 'text-primary' : 'text-slate-300'}`}>02 选择</span>
+                <div className="w-4 h-[1px] bg-slate-200" />
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${(step === 'analyzing' || step === 'result') ? 'text-primary' : 'text-slate-300'}`}>03 配置</span>
+                <div className="w-4 h-[1px] bg-slate-200" />
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${(step === 'generating' || step === 'done') ? 'text-primary' : 'text-slate-300'}`}>04 生成</span>
+              </div>
             </div>
           )}
-          {activeMode === 'smart' && step !== 'upload' && (
-            <>
-              {step === 'select' && (
-                <Button variant="outline" size="sm" onClick={() => setStep('upload')}>返回上传</Button>
-              )}
-              {step === 'result' && (
-                <Button variant="outline" size="sm" onClick={() => setStep('select')}>返回选择</Button>
-              )}
-              {step === 'done' && (
-                <Button variant="outline" size="sm" onClick={() => setStep('result')}>返回配置</Button>
-              )}
-              <Button variant="ghost" size="sm" onClick={() => {
-                setStep('upload');
-                setImageBase64('');
-                setAnalysis(null);
-                setModelBase64('');
-              }}>重新开始</Button>
-            </>
+
+          {userData && (
+            <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] font-black uppercase text-slate-400 tracking-tighter leading-none mb-1">{userData.name}</span>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/5 rounded-full border border-primary/10">
+                  <span className="text-xs font-black text-primary leading-none">{userData.integral} <small className="opacity-60">PTS</small></span>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-6 mt-6">
+      <main className="max-w-[1400px] mx-auto p-4 md:p-8 mt-4">
         {statusMsg.type && (
           <div className={`mb-6 p-4 rounded-lg flex items-center justify-between shadow-sm border ${
             statusMsg.type === 'loading' ? 'bg-blue-50 border-blue-200 text-blue-600' :
@@ -380,34 +383,71 @@ export default function Page() {
         {activeMode === 'smart' && (
           <>
             {step === 'upload' && (
-              <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-slate-300 rounded-xl bg-slate-100/50 hover:bg-slate-100 cursor-pointer"
-                   onClick={() => fileInputRef.current?.click()}>
-                <Upload className="w-12 h-12 text-slate-400 mb-4" />
-                <h2 className="text-2xl font-semibold mb-2">上传服装图片</h2>
-                <p className="text-muted-foreground mb-6">拖拽图片至此或点击浏览</p>
-                <Button>选择图片</Button>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+              <div className="max-w-4xl mx-auto">
+                <div className="flex flex-col items-center justify-center p-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[40px] bg-white dark:bg-slate-900/50 hover:border-primary/50 transition-all group cursor-pointer"
+                     onClick={() => fileInputRef.current?.click()}>
+                  <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+                    <Upload className="w-8 h-8 text-primary" />
+                  </div>
+                  <h2 className="text-3xl font-black tracking-tight mb-3">上传您的服装单品</h2>
+                  <p className="text-slate-400 font-medium mb-10 text-center max-w-sm">AI 将自动识别服装细节、材质与风格，\n并为您生成专业级电商素材。</p>
+                  <Button size="lg" className="rounded-full px-10 h-14 font-bold text-lg shadow-xl shadow-primary/20">
+                    选择照片
+                  </Button>
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+                </div>
               </div>
             )}
 
             {step === 'select' && (
-              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-200">
-                <h2 className="text-2xl font-semibold mb-8">选择需要生成的图片类型</h2>
-                <div className="flex flex-wrap items-center justify-center gap-4 max-w-2xl mb-12">
+              <div className="max-w-5xl mx-auto py-12">
+                <div className="text-center mb-16">
+                  <h2 className="text-4xl font-black tracking-tight mb-4">选择目标画幅</h2>
+                  <p className="text-slate-400 font-medium tracking-tight">根据您的投放渠道选择最合适的图片类型</p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
                   {ALL_TYPES.map(type => (
-                    <Button 
+                    <button 
                       key={type.id} 
-                      variant={selectedType === type.id ? 'default' : 'outline'}
                       onClick={() => setSelectedType(type.id)}
-                      className="px-6 py-6 text-lg"
+                      className={`relative p-8 rounded-[32px] border-2 text-left transition-all group ${
+                        selectedType === type.id 
+                        ? 'border-primary bg-primary/5 shadow-xl shadow-primary/5' 
+                        : 'border-slate-100 bg-white hover:border-slate-200 shadow-sm'
+                      }`}
                     >
-                      {type.label}
-                    </Button>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors ${
+                        selectedType === type.id ? 'bg-primary text-primary-foreground' : 'bg-slate-50 text-slate-400'
+                      }`}>
+                         {type.id === 'main' && <ImageIcon className="w-6 h-6" />}
+                         {type.id === 'detail' && <Maximize2 className="w-6 h-6" />}
+                         {type.id === 'sellingPoint' && <Sparkles className="w-6 h-6" />}
+                         {type.id === 'scene' && <ImageIcon className="w-6 h-6" />}
+                      </div>
+                      <h3 className={`text-lg font-bold mb-2 tracking-tight ${selectedType === type.id ? 'text-primary' : ''}`}>
+                        {type.label}
+                      </h3>
+                      <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                        {type.id === 'main' && '标准 800x800 正方形，适合淘宝/拼多多主图'}
+                        {type.id === 'detail' && '高清展示单品细节，突出质感与做工'}
+                        {type.id === 'sellingPoint' && '带文案排版，直击用户痛点，提升转化'}
+                        {type.id === 'scene' && '自然光影场景，打造更有温度的品牌感'}
+                      </p>
+                      {selectedType === type.id && (
+                        <div className="absolute top-6 right-6">
+                          <CheckCircle className="w-5 h-5 text-primary" />
+                        </div>
+                      )}
+                    </button>
                   ))}
                 </div>
-                <Button size="lg" onClick={startAnalysis} className="px-12">
-                  开始分析配置
-                </Button>
+
+                <div className="flex justify-center">
+                  <Button size="lg" onClick={startAnalysis} className="rounded-full px-16 h-14 font-bold text-lg">
+                    确认并分析 <Sparkles className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -420,130 +460,182 @@ export default function Page() {
             )}
 
             {step === 'result' && analysis && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="col-span-1 space-y-6">
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider">参考图片</h3>
-                  <img src={imageBase64} className="w-full h-auto rounded-lg shadow-sm border mb-4" alt="Original" />
+              <div className="flex flex-col lg:flex-row gap-8 items-start">
+                <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-24 space-y-6">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">参考图片</span>
+                    </div>
+                    <div className="p-4">
+                      <img src={imageBase64} className="w-full aspect-[3/4] object-cover rounded-xl shadow-sm border border-slate-100" alt="Original" />
+                    </div>
+                  </div>
                   
-                  {selectedType !== 'main' && selectedType !== 'detail' && (
-                    <>
-                      <h3 className="font-semibold mb-2 mt-6 text-sm uppercase tracking-wider">添加模特（可选）</h3>
-                      {modelBase64 ? (
-                        <div className="relative">
-                          <img src={modelBase64} className="w-full h-auto rounded-lg shadow-sm border" alt="Model" />
-                          <Button size="sm" variant="secondary" className="absolute top-2 right-2" onClick={() => setModelBase64('')}>移除</Button>
-                        </div>
-                      ) : (
-                        <div className="border border-dashed p-6 flex flex-col items-center justify-center rounded-lg bg-slate-50 cursor-pointer" onClick={() => modelInputRef.current?.click()}>
-                          <ImageIcon className="w-6 h-6 text-slate-400 mb-2" />
-                          <span className="text-xs text-muted-foreground">上传自定义模特</span>
-                          <input type="file" ref={modelInputRef} className="hidden" accept="image/*" onChange={handleModelUpload} />
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {selectedType === 'scene' && (
-                    <>
-                      <h3 className="font-semibold mb-2 mt-6 text-sm uppercase tracking-wider">自定义背景图（可选）</h3>
-                      {sceneBase64 ? (
-                        <div className="relative">
-                          <img src={sceneBase64} className="w-full h-auto rounded-lg shadow-sm border" alt="Scene" />
-                          <Button size="sm" variant="secondary" className="absolute top-2 right-2" onClick={() => setSceneBase64('')}>移除</Button>
-                        </div>
-                      ) : (
-                        <div className="border border-dashed p-6 flex flex-col items-center justify-center rounded-lg bg-slate-50 cursor-pointer" onClick={() => sceneInputRef.current?.click()}>
-                          <ImageIcon className="w-6 h-6 text-slate-400 mb-2" />
-                          <span className="text-xs text-muted-foreground">上传自定义背景图</span>
-                          <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
-                        </div>
-                      )}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="col-span-2 space-y-6">
-              <Card>
-                <CardContent className="p-6">
-                  <Tabs defaultValue="analysis">
-                    <TabsList className="mb-6 w-full">
-                      <TabsTrigger value="analysis" className="flex-1">AI 提取数据</TabsTrigger>
-                      <TabsTrigger value="config" className="flex-1">提示词配置</TabsTrigger>
-                    </TabsList>
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">资源叠加</h3>
                     
-                    <TabsContent value="analysis" className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <EditableTextField label="商品名称" value={analysis.productName} onChange={(v) => setAnalysis({...analysis, productName: v})} />
-                        <EditableTextField label="类别" value={analysis.category} onChange={(v) => setAnalysis({...analysis, category: v})} />
-                        <EditableTextField label="风格" value={analysis.style} onChange={(v) => setAnalysis({...analysis, style: v})} />
-                        <EditableTextField label="材质" value={analysis.materials} onChange={(v) => setAnalysis({...analysis, materials: v})} />
-                      </div>
-                      <EditableTextField label="目标受众" value={analysis.targetAudience} onChange={(v) => setAnalysis({...analysis, targetAudience: v})} />
-                      <EditableTextField label="描述" value={analysis.description} onChange={(v) => setAnalysis({...analysis, description: v})} />
-                      
-                      <EditableTagList label="颜色" tags={analysis.colors} onChange={(v) => setAnalysis({...analysis, colors: v})} />
-                      <EditableTagList label="卖点" tags={analysis.sellingPoints} onChange={(v) => setAnalysis({...analysis, sellingPoints: v})} />
-                      <EditableTagList label="关键词" tags={analysis.keywords} onChange={(v) => setAnalysis({...analysis, keywords: v})} />
-                    </TabsContent>
-                    
-                    <TabsContent value="config" className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <EditableTextField label="服装类别" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
-                        <EditableTextField label="服装颜色" value={config.garmentColor} onChange={(v) => setConfig({...config, garmentColor: v})} />
-                        <EditableTextField label="服装材质" value={config.garmentMaterial} onChange={(v) => setConfig({...config, garmentMaterial: v})} />
-                        <EditableTextField label="服装风格" value={config.garmentStyle} onChange={(v) => setConfig({...config, garmentStyle: v})} />
-                        {selectedType !== 'main' && selectedType !== 'detail' && <EditableTextField label="模特气质" value={config.modelStyle} onChange={(v) => setConfig({...config, modelStyle: v})} />}
-                        {(selectedType === 'scene' || selectedType === 'sellingPoint') && <EditableTextField label="场景风格" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />}
-                      </div>
-                      <div className="space-y-3 pt-4 border-t mt-4">
-                        <h4 className="text-sm font-medium">附加主题与卖点</h4>
-                        {selectedType === 'scene' && (
-                          <div className="space-y-3">
-                            <EditableTextField label="场景主题" value={config.sceneTheme} onChange={(v) => setConfig({...config, sceneTheme: v})} />
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {PRESET_SCENES.map((scene) => (
-                                <Button 
-                                  key={scene} 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className={config.sceneTheme === scene ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}
-                                  onClick={() => setConfig({...config, sceneTheme: scene})}
-                                >
-                                  {scene}
-                                </Button>
-                              ))}
+                    {selectedType !== 'main' && selectedType !== 'detail' && (
+                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm group">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 block">目标模特</Label>
+                        {modelBase64 ? (
+                          <div className="relative rounded-lg overflow-hidden group">
+                            <img src={modelBase64} className="w-full aspect-square object-cover" alt="Model" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button size="sm" variant="secondary" onClick={() => setModelBase64('')}>移除</Button>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-2">您可以选择上方的预设场景，或者手动输入您想要的场景主题。如果您在左侧上传了自定义背景图，将优先使用您上传的图片还原。</p>
+                          </div>
+                        ) : (
+                          <div 
+                            className="aspect-square border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950 transition-colors hover:border-primary/40 hover:bg-slate-100/50 cursor-pointer" 
+                            onClick={() => modelInputRef.current?.click()}
+                          >
+                            <ImageIcon className="w-6 h-6 text-slate-300 mb-2" />
+                            <span className="text-[10px] font-bold text-muted-foreground">上传模特图</span>
+                            <input type="file" ref={modelInputRef} className="hidden" accept="image/*" onChange={handleModelUpload} />
                           </div>
                         )}
-                        {selectedType === 'sellingPoint' && <EditableTextField label="主要卖点" value={analysis?.sellingPoints?.[0] || '品质如一'} onChange={(v) => {
-                          if (!analysis) return;
-                          const sps = [...(analysis.sellingPoints || [''])];
-                          sps[0] = v;
-                          setAnalysis({...analysis, sellingPoints: sps});
-                        }} />}
-                        {selectedType !== 'scene' && selectedType !== 'sellingPoint' && <p className="text-xs text-muted-foreground">当前选中类型无需配置额外主题</p>}
                       </div>
-                    </TabsContent>
-                  </Tabs>
+                    )}
 
-                  <div className="flex items-center justify-between mt-8 pt-6 border-t">
-                    <div className="text-sm text-muted-foreground flex items-center">
-                      <CheckCircle className="w-4 h-4 mr-2 text-green-500" /> 准备就绪
-                    </div>
-                    <Button onClick={handleGenerate} size="lg" className="px-8">
-                      生成图片
-                    </Button>
+                    {selectedType === 'scene' && (
+                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm group">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 block">自定义背景</Label>
+                        {sceneBase64 ? (
+                          <div className="relative rounded-lg overflow-hidden group">
+                            <img src={sceneBase64} className="w-full aspect-square object-cover" alt="Scene" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button size="sm" variant="secondary" onClick={() => setSceneBase64('')}>移除</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div 
+                            className="aspect-square border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950 transition-colors hover:border-primary/40 hover:bg-slate-100/50 cursor-pointer" 
+                            onClick={() => sceneInputRef.current?.click()}
+                          >
+                            <ImageIcon className="w-6 h-6 text-slate-300 mb-2" />
+                            <span className="text-[10px] font-bold text-muted-foreground">上传背景图</span>
+                            <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
+                </aside>
+
+                <div className="flex-1 space-y-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h2 className="text-xl font-bold tracking-tight">配置生成详情</h2>
+                      <p className="text-sm text-muted-foreground">微调 AI 提取的数据或直接编辑提示词</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <Button variant="outline" size="sm" onClick={() => setStep('select')} className="text-xs font-semibold">上一步</Button>
+                       <Button onClick={handleGenerate} size="sm" className="px-6 font-bold">
+                         开始生成 <Zap className="w-3.5 h-3.5 ml-1.5 fill-current" />
+                       </Button>
+                    </div>
+                  </div>
+
+                  <Card className="border-none shadow-none bg-transparent">
+                    <Tabs defaultValue="analysis" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl h-12 mb-8">
+                        <TabsTrigger value="analysis" className="rounded-xl font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                          AI 提取数据
+                        </TabsTrigger>
+                        <TabsTrigger value="config" className="rounded-xl font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                          提示词微调
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm">
+                        <TabsContent value="analysis" className="mt-0 space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                            <EditableTextField label="商品名称" value={analysis.productName} onChange={(v) => setAnalysis({...analysis, productName: v})} />
+                            <EditableTextField label="类别" value={analysis.category} onChange={(v) => setAnalysis({...analysis, category: v})} />
+                            <EditableTextField label="风格" value={analysis.style} onChange={(v) => setAnalysis({...analysis, style: v})} />
+                            <EditableTextField label="主要材质" value={analysis.materials} onChange={(v) => setAnalysis({...analysis, materials: v})} />
+                          </div>
+                          
+                          <div className="h-px bg-slate-100 dark:bg-slate-800" />
+                          
+                          <EditableTextField label="目标受众" value={analysis.targetAudience} onChange={(v) => setAnalysis({...analysis, targetAudience: v})} />
+                          <EditableTextField label="核心描述" value={analysis.description} onChange={(v) => setAnalysis({...analysis, description: v})} />
+                          
+                          <div className="grid grid-cols-1 gap-8">
+                            <EditableTagList label="商品配色" tags={analysis.colors} onChange={(v) => setAnalysis({...analysis, colors: v})} />
+                            <EditableTagList label="核心卖点" tags={analysis.sellingPoints} onChange={(v) => setAnalysis({...analysis, sellingPoints: v})} />
+                            <EditableTagList label="视觉关键词" tags={analysis.keywords} onChange={(v) => setAnalysis({...analysis, keywords: v})} />
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="config" className="mt-0 space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                            <EditableTextField label="服装类别" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
+                            <EditableTextField label="服装颜色" value={config.garmentColor} onChange={(v) => setConfig({...config, garmentColor: v})} />
+                            <EditableTextField label="服装材质" value={config.garmentMaterial} onChange={(v) => setConfig({...config, garmentMaterial: v})} />
+                            <EditableTextField label="风格取向" value={config.garmentStyle} onChange={(v) => setConfig({...config, garmentStyle: v})} />
+                            {selectedType !== 'main' && selectedType !== 'detail' && <EditableTextField label="模特气质" value={config.modelStyle} onChange={(v) => setConfig({...config, modelStyle: v})} />}
+                            {(selectedType === 'scene' || selectedType === 'sellingPoint') && <EditableTextField label="期望场景" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />}
+                          </div>
+
+                          <div className="h-px bg-slate-100 dark:bg-slate-800" />
+
+                          <div className="space-y-6">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                              场景与动态主题 <Sparkles className="w-3 h-3" />
+                            </h4>
+                            {selectedType === 'scene' && (
+                              <div className="space-y-4">
+                                <EditableTextField label="场景主题" value={config.sceneTheme} onChange={(v) => setConfig({...config, sceneTheme: v})} />
+                                <div className="flex flex-wrap gap-2">
+                                  {PRESET_SCENES.map((scene) => (
+                                    <button 
+                                      key={scene} 
+                                      className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all ${
+                                        config.sceneTheme === scene 
+                                        ? 'bg-primary border-primary text-primary-foreground shadow-md' 
+                                        : 'bg-white border-slate-200 hover:border-primary/50 text-muted-foreground'
+                                      }`}
+                                      onClick={() => setConfig({...config, sceneTheme: scene})}
+                                    >
+                                      {scene}
+                                    </button>
+                                  ))}
+                                </div>
+                                <p className="text-[10px] font-medium text-muted-foreground bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                   💡 提示：您可以选择上方的预设场景，或者手动输入您想要的场景主题。如果您在左侧上传了自定义背景图，将优先使用您上传的图片还原。
+                                </p>
+                              </div>
+                            )}
+                            {selectedType === 'sellingPoint' && (
+                              <div className="space-y-4">
+                                <EditableTextField 
+                                  label="首要卖点文本" 
+                                  value={analysis?.sellingPoints?.[0] || ''} 
+                                  onChange={(v) => {
+                                    if (!analysis) return;
+                                    const sps = [...(analysis.sellingPoints || [''])];
+                                    sps[0] = v;
+                                    setAnalysis({...analysis, sellingPoints: sps});
+                                  }} 
+                                />
+                                <p className="text-[10px] font-medium text-muted-foreground">该文本将被渲染在卖点图的视觉层级最高处。</p>
+                              </div>
+                            )}
+                            {selectedType !== 'scene' && selectedType !== 'sellingPoint' && (
+                              <div className="py-12 flex flex-col items-center justify-center opacity-40">
+                                <ImageIcon className="w-8 h-8 mb-2" />
+                                <p className="text-xs font-medium">当前类型采用标准自适应背景，无需额外主题配置</p>
+                              </div>
+                            )}
+                          </div>
+                        </TabsContent>
+                      </div>
+                    </Tabs>
+                  </Card>
+                </div>
+              </div>
+            )}
 
         {(step === 'generating' || step === 'done') && (
           <div className="space-y-6">
@@ -576,65 +668,97 @@ export default function Page() {
         )}
 
         {activeMode === 'custom' && (
-          <div className="max-w-3xl mx-auto space-y-8">
-            <div className="flex flex-col items-center mb-8">
-              <Zap className="w-12 h-12 text-primary mb-4" />
-              <h2 className="text-2xl font-bold">自由生图</h2>
-              <p className="text-muted-foreground mt-2">完全自定义 Prompt，释放无限可能</p>
+          <div className="max-w-4xl mx-auto space-y-12 py-10 animate-in fade-in slide-in-from-bottom-8">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-[28px] flex items-center justify-center mb-6">
+                <Zap className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-4xl font-black tracking-tight mb-3">自由创作模式</h2>
+              <p className="text-slate-400 font-medium tracking-tight">输入您的奇思妙想，让 AI 为您呈现无限可能</p>
             </div>
 
-            <Card className="shadow-sm">
-              <CardContent className="p-6 space-y-6">
-                <div>
-                  <Label className="text-base font-semibold mb-3 block">1. 上传参考图 (可选)</Label>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+              <div className="lg:col-span-2 space-y-8">
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-8 shadow-sm">
+                  <Label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 block">参考来源 (可选)</Label>
                   {customReferenceBase64 ? (
-                     <div className="relative inline-block">
-                        <img src={customReferenceBase64} className="h-48 w-auto rounded-lg shadow-sm border" alt="Custom Reference" />
-                        <Button size="sm" variant="secondary" className="absolute top-2 right-2" onClick={() => setCustomReferenceBase64('')}>移除</Button>
+                     <div className="relative group rounded-2xl overflow-hidden">
+                        <img src={customReferenceBase64} className="w-full aspect-square object-cover" alt="Custom Reference" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Button size="sm" variant="secondary" onClick={() => setCustomReferenceBase64('')}>移除</Button>
+                        </div>
                      </div>
                   ) : (
-                    <div className="border border-dashed p-8 flex flex-col items-center justify-center rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100" onClick={() => customInputRef.current?.click()}>
-                      <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
-                      <span className="text-sm text-muted-foreground">点击上传图片作为参考风格</span>
+                    <div 
+                      className="aspect-square border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[32px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer group" 
+                      onClick={() => customInputRef.current?.click()}
+                    >
+                      <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                        <ImageIcon className="w-6 h-6 text-slate-300" />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">点击上传参考图</span>
                       <input type="file" ref={customInputRef} className="hidden" accept="image/*" onChange={handleCustomUpload} />
                     </div>
                   )}
                 </div>
 
-                <div>
-                  <Label className="text-base font-semibold mb-3 block">2. 输入你的提示词 (Prompt)</Label>
+                <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6">
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5" /> 创作贴士
+                  </h4>
+                  <p className="text-[11px] text-primary/70 font-medium leading-relaxed italic">
+                    &quot;描述中包含：光影细节、材质表现、背景环境以及构图方式，能让 AI 理解得更透彻。上传参考图可帮助 AI 更好地把握整体基调。&quot;
+                  </p>
+                </div>
+              </div>
+
+              <div className="lg:col-span-3 space-y-6">
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-8 shadow-sm">
+                  <Label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 block">创意描述 (Prompt)</Label>
                   <textarea 
-                    className="w-full min-h-[150px] p-4 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                    placeholder="描述你想要的图片，例如：\n极简纯白背景，一件oversize风格的黑色卫衣挂在木质衣架上..."
+                    className="w-full min-h-[300px] p-6 text-lg font-medium border-none bg-slate-50/50 dark:bg-slate-950 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-slate-300" 
+                    placeholder="例如：\n极简纯白背景，一件oversize风格的黑色卫衣挂在木质衣架上，柔和侧光，高清写实材质..."
                     value={customPrompt}
                     onChange={(e) => setCustomPrompt(e.target.value)}
                   />
+                  <div className="pt-8 flex justify-end">
+                    <Button 
+                      size="lg" 
+                      onClick={handleCustomGenerate} 
+                      disabled={!customPrompt || isGenerating} 
+                      className="rounded-full px-12 h-14 font-bold text-lg shadow-xl shadow-primary/20"
+                    >
+                      {isGenerating ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Sparkles className="w-5 h-5 mr-2" />}
+                      {isGenerating ? '正在构思中...' : '开始生成'}
+                    </Button>
+                  </div>
                 </div>
-
-                <div className="pt-4 flex justify-between items-center">
-                  <p className="text-xs text-muted-foreground">提示：参考图片和详细描述结合能带来最佳效果</p>
-                  <Button size="lg" onClick={handleCustomGenerate} disabled={!customPrompt || isGenerating} className="px-8">
-                    {isGenerating ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Sparkles className="w-5 h-5 mr-2" />}
-                    {isGenerating ? '生成中...' : '开始生成'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {customResult && (
-              <div className="mt-12 text-center animate-in fade-in slide-in-from-bottom-8">
-                <h3 className="text-xl font-semibold mb-6">生成结果</h3>
-                <div className="inline-block relative rounded-xl overflow-hidden shadow-xl border">
-                  <img src={customResult} className="max-w-full max-h-[70vh] object-contain" alt="Custom Generated" />
-                  <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent flex justify-end gap-3">
-                    <Button variant="secondary" size="sm" onClick={() => {
+              <div className="pt-16 text-center animate-in fade-in slide-in-from-bottom-12">
+                <div className="flex items-center justify-center gap-3 mb-10">
+                  <div className="h-px w-12 bg-slate-100" />
+                  <h3 className="text-2xl font-black tracking-tight uppercase">生成结果</h3>
+                  <div className="h-px w-12 bg-slate-100" />
+                </div>
+                
+                <div className="inline-block relative rounded-[40px] overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800">
+                  <img src={customResult} className="max-w-full max-h-[75vh] object-contain" alt="Custom Generated" />
+                  <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex justify-between items-end opacity-0 hover:opacity-100 transition-opacity duration-500">
+                    <div className="text-left">
+                       <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">自由生图模式</p>
+                       <p className="text-white text-sm font-bold truncate max-w-xs">{customPrompt}</p>
+                    </div>
+                    <Button variant="secondary" size="lg" className="rounded-full font-bold px-8" onClick={() => {
                       const link = document.createElement('a');
-                      link.download = `custom-generation.png`;
+                      link.download = `fashion-ai-custom.png`;
                       link.href = customResult;
                       link.click();
                     }}>
                       <Download className="w-4 h-4 mr-2" />
-                      下载
+                      下载高清图
                     </Button>
                   </div>
                 </div>
@@ -654,21 +778,21 @@ function ResultCard({ type, imgSrc, analysis }: { type: string; imgSrc?: string;
   const [isEditOpen, setIsEditOpen] = useState(false);
   
   const [tConf, setTConf] = useState<TextOverlayConfig>({
-    mainTitle: analysis?.productName || '优质商品',
-    subTitle: analysis?.style || '风格',
+    mainTitle: analysis?.productName || '时尚新品',
+    subTitle: analysis?.style || '典雅风格',
     price: '¥299',
     promoBadge: 'NEW',
     detailInfo: [analysis.productName, analysis.materials, analysis.style, analysis.season].filter(Boolean) as string[],
-    sellingPointTexts: analysis.sellingPoints || ['品质卓越'],
-    sceneTitle: analysis.brandName || '品牌',
-    sceneSubtitle: analysis.posterTheme || '探索世界'
+    sellingPointTexts: analysis.sellingPoints || ['精选用料', '匠心工艺'],
+    sceneTitle: analysis.brandName || 'FASHION BRAND',
+    sceneSubtitle: analysis.posterTheme || '探索无限可能'
   });
 
   const labels: Record<string, string> = {
-    main: '商品主图',
-    detail: '商品详情',
-    sellingPoint: '核心卖点',
-    scene: '场景图'
+    main: '商品主图 (Square)',
+    detail: '细节展示 (Detail)',
+    sellingPoint: '卖点海报 (Hero)',
+    scene: '氛围场景 (Lifestyle)'
   };
 
   const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -680,7 +804,7 @@ function ResultCard({ type, imgSrc, analysis }: { type: string; imgSrc?: string;
     if (!ctx) return;
     
     const img = new Image();
-    img.crossOrigin = "anonymous"; // Ensure we can read back from canvas if needed
+    img.crossOrigin = "anonymous";
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
@@ -698,111 +822,130 @@ function ResultCard({ type, imgSrc, analysis }: { type: string; imgSrc?: string;
   const downloadImage = () => {
     if (canvasRef.current) {
       const link = document.createElement('a');
-      link.download = `${type}-final.png`;
+      link.download = `${type}-master.png`;
       link.href = canvasRef.current.toDataURL();
       link.click();
     }
   };
 
   return (
-    <Card className="overflow-hidden shadow-lg border-2 border-slate-100 max-w-sm mx-auto w-full">
-      <div className="bg-slate-100 aspect-[3/4] relative flex items-center justify-center group">
-        {imgSrc ? (
-          <>
-            <canvas ref={canvasRef} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 px-2">
-              <Button size="icon" variant="secondary" onClick={() => setIsPreviewOpen(true)} title="预览大图">
-                <Maximize2 className="w-5 h-5" />
-              </Button>
-              <Button size="icon" variant="secondary" onClick={() => setIsEditOpen(true)} title="编辑文字">
-                <Edit2 className="w-5 h-5" />
-              </Button>
-              <Button size="icon" variant="secondary" onClick={downloadImage} title="下载图片">
-                <Download className="w-5 h-5" />
-              </Button>
+    <div className="w-full max-w-lg mx-auto animate-in zoom-in-95 duration-700">
+      <div className="bg-white dark:bg-slate-900 rounded-[48px] p-4 shadow-2xl shadow-slate-200 dark:shadow-black/50 border border-slate-100 dark:border-slate-800">
+        <div className="aspect-[3/4] relative rounded-[40px] overflow-hidden bg-slate-50 dark:bg-slate-950 group">
+          {imgSrc ? (
+            <>
+              <canvas ref={canvasRef} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col items-center justify-center gap-6 backdrop-blur-sm">
+                <div className="flex gap-4">
+                  <Button size="icon" variant="secondary" className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20" onClick={() => setIsPreviewOpen(true)}>
+                    <Maximize2 className="w-6 h-6" />
+                  </Button>
+                  <Button size="icon" variant="secondary" className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20" onClick={() => setIsEditOpen(true)}>
+                    <Edit2 className="w-6 h-6" />
+                  </Button>
+                </div>
+                <Button variant="default" className="rounded-full px-8 h-12 font-bold shadow-xl shadow-primary/20" onClick={downloadImage}>
+                  <Download className="w-4 h-4 mr-2" />
+                  下载最终成品
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
+              </div>
+              <span className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-slate-300 animate-pulse">正在渲染中</span>
             </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-400 mb-2" />
-            <span className="text-sm text-slate-500">正在生成...</span>
+          )}
+        </div>
+        
+        <div className="py-6 px-4 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-1 leading-none">画布类型</span>
+            <span className="text-xl font-black tracking-tight">{labels[type]}</span>
           </div>
-        )}
-      </div>
-      <div className="p-4 bg-white border-t flex justify-between items-center text-center">
-        <span className="font-medium text-lg w-full">{labels[type]}</span>
+          <div className="bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Premium Output</span>
+          </div>
+        </div>
       </div>
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-4xl p-1 bg-black/5 border-none shadow-none">
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-1 overflow-hidden bg-transparent border-none shadow-none">
           {imgSrc && (
-            <img 
-              src={previewUrl || imgSrc} 
-              alt="Preview" 
-              className="w-full h-auto max-h-[85vh] object-contain rounded-lg" 
-            />
+            <div className="flex-1 flex items-center justify-center p-4">
+              <img 
+                src={previewUrl || imgSrc} 
+                alt="Preview" 
+                className="max-w-full max-h-full object-contain rounded-3xl shadow-2xl border-4 border-white" 
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>编辑文案</DialogTitle>
+        <DialogContent className="max-w-md rounded-[32px] p-8">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-2xl font-black tracking-tight">内容排版微调</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-            <div className="space-y-2">
-              <Label>主标题</Label>
-              <Input value={tConf.mainTitle} onChange={(e) => setTConf({...tConf, mainTitle: e.target.value})} />
+          <div className="space-y-6 py-2 max-h-[60vh] overflow-y-auto pr-4 scrollbar-hide">
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">基础信息</h4>
+              <EditableTextField label="主标题" value={tConf.mainTitle} onChange={(v) => setTConf({...tConf, mainTitle: v})} />
+              <EditableTextField label="副标题" value={tConf.subTitle} onChange={(v) => setTConf({...tConf, subTitle: v})} />
             </div>
-            <div className="space-y-2">
-              <Label>副标题 / 风格</Label>
-              <Input value={tConf.subTitle} onChange={(e) => setTConf({...tConf, subTitle: e.target.value})} />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">价格策略</h4>
+                <EditableTextField label="价格" value={tConf.price} onChange={(v) => setTConf({...tConf, price: v})} />
+              </div>
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">促销标识</h4>
+                <EditableTextField label="徽标" value={tConf.promoBadge} onChange={(v) => setTConf({...tConf, promoBadge: v})} />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>价格</Label>
-              <Input value={tConf.price} onChange={(e) => setTConf({...tConf, price: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>徽标 (Promo Badge)</Label>
-              <Input value={tConf.promoBadge} onChange={(e) => setTConf({...tConf, promoBadge: e.target.value})} />
-            </div>
+
             {type === 'detail' && (
-              <div className="space-y-2">
-                <Label>详情面板文本 (逗号分隔)</Label>
-                <Input 
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">参数面板</h4>
+                <EditableTextField 
+                  label="详情列表 (逗号分隔)" 
                   value={tConf.detailInfo.join(', ')} 
-                  onChange={(e) => setTConf({...tConf, detailInfo: e.target.value.split(',').map(s=>s.trim())})} 
+                  onChange={(v) => setTConf({...tConf, detailInfo: v.split(',').map(s=>s.trim())})} 
                 />
               </div>
             )}
+            
             {type === 'sellingPoint' && (
-              <div className="space-y-2">
-                <Label>卖点文本 (逗号分隔)</Label>
-                <Input 
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">卖点内容</h4>
+                <EditableTextField 
+                  label="核心卖点 (逗号分隔)" 
                   value={tConf.sellingPointTexts.join(', ')} 
-                  onChange={(e) => setTConf({...tConf, sellingPointTexts: e.target.value.split(',').map(s=>s.trim())})} 
+                  onChange={(v) => setTConf({...tConf, sellingPointTexts: v.split(',').map(s=>s.trim())})} 
                 />
               </div>
             )}
+            
             {type === 'scene' && (
-              <>
-                <div className="space-y-2">
-                  <Label>场景主标题 (品牌)</Label>
-                  <Input value={tConf.sceneTitle} onChange={(e) => setTConf({...tConf, sceneTitle: e.target.value})} />
-                </div>
-                <div className="space-y-2">
-                  <Label>场景副标题</Label>
-                  <Input value={tConf.sceneSubtitle} onChange={(e) => setTConf({...tConf, sceneSubtitle: e.target.value})} />
-                </div>
-              </>
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">品牌心智</h4>
+                <EditableTextField label="品牌名" value={tConf.sceneTitle} onChange={(v) => setTConf({...tConf, sceneTitle: v})} />
+                <EditableTextField label="品牌 Slogan" value={tConf.sceneSubtitle} onChange={(v) => setTConf({...tConf, sceneSubtitle: v})} />
+              </div>
             )}
           </div>
-          <div className="flex justify-end pt-4 border-t">
-            <Button onClick={() => setIsEditOpen(false)}>完成</Button>
+          <div className="flex justify-end pt-8 mt-4 border-t">
+            <Button onClick={() => setIsEditOpen(false)} className="rounded-full px-10 h-12 font-bold shadow-lg shadow-primary/20">
+              更新排版预览
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }
