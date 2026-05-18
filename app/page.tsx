@@ -501,7 +501,7 @@ export default function Page() {
                     </div>
                     <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">定制精炼参数</h2>
                     <p className="text-base sm:text-lg text-slate-400 font-medium max-w-2xl leading-relaxed">
-                      基于垂直风格模型优化的生成参数。您可以手动干预以获得更极致的效果。
+                      产品样式 100% 还原。基于垂直风格模型深度优化，您可以微调参数来掌控场景氛围与模特表现。
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
@@ -625,6 +625,16 @@ export default function Page() {
                           <EditableTextField label="光影氛围" value={config.sceneStyle} onChange={(v) => setConfig({...config, sceneStyle: v})} />
                           <EditableTextField label="构图控制" value={config.garmentCategory} onChange={(v) => setConfig({...config, garmentCategory: v})} />
                         </div>
+                        
+                        <div className="p-8 bg-amber-500/5 rounded-[32px] border border-amber-500/10 shadow-inner">
+                          <div className="flex items-center gap-3 mb-3">
+                            <CheckCircle className="w-4 h-4 text-amber-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">原图硬核还原</span>
+                          </div>
+                          <p className="text-[11px] font-medium text-slate-500 leading-relaxed italic">
+                            系统将强制锁定原图中的产品结构与材质。参数调整仅影响环境光影、模特表现及场景融合度。
+                          </p>
+                        </div>
                       </div>
 
                       {/* Column 3: Output Specs */}
@@ -736,19 +746,21 @@ export default function Page() {
               <div className="w-16 h-16 bg-primary/10 rounded-[28px] flex items-center justify-center mb-6">
                 <Zap className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-4xl font-black tracking-tight mb-3">自由创作模式</h2>
-              <p className="text-slate-400 font-medium tracking-tight">输入您的奇思妙想，让 AI 为您呈现无限可能</p>
+              <h2 className="text-4xl font-black tracking-tight mb-3">产品 + 创意：探索无限可能</h2>
+              <p className="text-slate-400 font-medium tracking-tight px-4 max-w-2xl">
+                上传您的单品原图，输入创意构思。AI 将保证产品样式 100% 还原，并根据您的描述灵活调整模特姿势与环境。
+              </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
               <div className="lg:col-span-2 space-y-8">
                 <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-8 shadow-sm">
-                  <Label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 block">参考来源 (可选)</Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 block">产品原图 (100% 还原基础)</Label>
                   {customReferenceBase64 ? (
-                     <div className="relative group rounded-2xl overflow-hidden">
-                        <img src={customReferenceBase64} className="w-full aspect-square object-cover" alt="Custom Reference" />
+                     <div className="relative group rounded-2xl overflow-hidden aspect-square shadow-2xl">
+                        <img src={customReferenceBase64} className="w-full h-full object-cover" alt="Custom Reference" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Button size="sm" variant="secondary" onClick={() => setCustomReferenceBase64('')}>移除</Button>
+                          <Button size="sm" variant="secondary" onClick={() => setCustomReferenceBase64('')}>更换原图</Button>
                         </div>
                      </div>
                   ) : (
@@ -757,20 +769,20 @@ export default function Page() {
                       onClick={() => customInputRef.current?.click()}
                     >
                       <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                        <ImageIcon className="w-6 h-6 text-slate-300" />
+                        <Upload className="w-6 h-6 text-primary" />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">点击上传参考图</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center px-6">点击上传产品原图<br/><small className="opacity-50">AI 将保证商品 100% 不变</small></span>
                       <input type="file" ref={customInputRef} className="hidden" accept="image/*" onChange={handleCustomUpload} />
                     </div>
                   )}
                 </div>
 
-                <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6">
-                  <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5" /> 创作贴士
+                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-6">
+                  <h4 className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5" /> 自由生图贴士
                   </h4>
-                  <p className="text-[11px] text-primary/70 font-medium leading-relaxed italic">
-                    &quot;描述中包含：光影细节、材质表现、背景环境以及构图方式，能让 AI 理解得更透彻。上传参考图可帮助 AI 更好地把握整体基调。&quot;
+                  <p className="text-[11px] text-emerald-600/70 font-medium leading-relaxed italic">
+                    &quot;描述中包含：光效细节、材质质感、模特姿势、背景环境等。您可以自由构思，AI 将保证产品完美融入并 100% 还原。&quot;
                   </p>
                 </div>
 

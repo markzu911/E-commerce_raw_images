@@ -131,38 +131,38 @@ function buildPrompt(
   
   if (type === 'main') {
     basePrompt = `【服装单品展示 - 无模特】
-    100% explicitly identical to reference image. 
+    CRITICAL: 100% IDENTICAL to the reference product image. Zero modifications to shape, color, texture, or details.
     Product: ${garmentDesc}
     Pure white background for product isolated display. Centered flat lay or hanging shot.
-    CRITICAL: NO TEXT, NO PEOPLE, NO MANNEQUINS.`;
+    NO TEXT, NO PEOPLE, NO MANNEQUINS.`;
   } else {
     if (hasModelImage) {
-      basePrompt = `【面孔复刻 - 最高优先级】
-      Model face MUST be exactly the same as Reference Image 1. 
-      Garment MUST be exactly the same as Reference Image 2.
-      Model vibe: ${vars.model_style}.
+      basePrompt = `【面孔复刻 & 模特融合 - 最高优先级】
+      1. MODEL: Identity and features MUST be exactly the same as Reference Image 1. Pose can be different and dynamic.
+      2. GARMENT: MUST be 100% IDENTICAL to the product in Reference Image 2. No changes in style, material, or color.
+      Vibe: ${vars.model_style}.
       Garment: ${garmentDesc}.`;
     } else {
-      basePrompt = `【默认模特 + 服装参照】
-      Garment MUST be exactly the same as Reference Image.
-      Female/Male model, ${vars.model_style} vibe. 
+      basePrompt = `【模特上身展示】
+      1. GARMENT: MUST be 100% IDENTICAL to the reference product image. Zero modifications.
+      2. MODEL: Professional model, ${vars.model_style} vibe. Natural posing.
       Garment: ${garmentDesc}.`;
     }
 
     switch (type) {
       case 'detail':
-        basePrompt += `\nScene: Fabric and craftsmanship close-up detail shot. Dark grey monochrome background. Split composition (full product + close-up detail).`;
+        basePrompt += `\nScene: Fabric and craftsmanship close-up detail shot. Dark grey monochrome background. Focus on original textures from reference.`;
         break;
       case 'sellingPoint':
-        basePrompt += `\nScene: Morandi color portrait background (oatmeal/beige/milk tea). Rule of thirds or diagonal composition with 15-20% negative space.`;
+        basePrompt += `\nScene: Morandi color portrait background (oatmeal/beige/milk tea). Clean and high-end studio lighting.`;
         break;
       case 'scene':
-        basePrompt += `\nScene: ${vars.scene_theme}. Mid-shot with strong spatial depth.`;
+        basePrompt += `\nScene: ${vars.scene_theme}. Professional fashion photography background. Keep scene details consistent if a scene reference is provided.`;
         break;
     }
   }
 
-  basePrompt += '\\nCRITICAL: DO NOT INCLUDE ANY TEXT, LETTERS, WATERMARKS, LOGOS, OR TYPOGRAPHY IN THE IMAGE.';
+  basePrompt += '\\nCRITICAL: ABSOLUTELY NO TEXT, LOGOS (other than product ones), OR TYPOGRAPHY IN THE OUTPUT IMAGE.';
   
   return basePrompt;
 }
@@ -192,10 +192,12 @@ export async function generateImageServer(
   let sceneIndex = 2; 
   
   if (type === 'main' || !hasModelImage) {
+    // Single reference: the product
     parts.push({
       inlineData: extractParts(imageUrlBase64)
     });
   } else {
+    // Two references: 1. Model, 2. Product
     parts.push({
       inlineData: extractParts(modelUrlBase64!)
     });
@@ -206,12 +208,15 @@ export async function generateImageServer(
   }
   
   if (hasSceneImage && type === 'scene') {
-    prompt += `\nBackground MUST be exactly the same as Reference Image ${sceneIndex}.`;
+    prompt += `\nBackground MUST be 100% consistent with the aesthetic and environment of Reference Image ${sceneIndex}.`;
     parts.push({
       inlineData: extractParts(sceneUrlBase64!)
     });
   }
   
+  // Add a final forceful instruction
+  prompt += `\nFinal strict instruction: Keep the product from the reference image 100% unchanged. Do not reinterpret. Just replicate it perfectly on the model/scene.`;
+
   parts.push({ text: prompt });
  
   const responsePromise = ai.models.generateContent({
@@ -256,7 +261,11 @@ export async function generateCustomImageServer(
     parts.push({
       inlineData: extractParts(referenceImageBase64)
     });
-    prompt += `\nPlease refer to the uploaded image for style and elements.`;
+    prompt = `CRITICAL TASK: Maintain 100% identity and fidelity of the product shown in the reference image. 
+    1. DO NOT change the product's shape, color, material, texture, or details. 
+    2. Place this EXACT and UNCHANGED product into the following creative context: ${prompt}.
+    3. The lighting and environment should naturally interact with the product without altering its inherent design.
+    4. Pose variety is encouraged if there is a model, but the model's identity and the product's look must remain stable.`;
   }
   parts.push({ text: prompt });
   
