@@ -198,7 +198,9 @@ export async function generateCustomImage(
 export async function generateVideo(
   imageBase64: string,
   userId: string,
-  toolId: string
+  toolId: string,
+  analysis?: AnalysisData,
+  config?: PromptConfig
 ): Promise<{ videoUrl: string }> {
   const processedBase64 = imageBase64.length > 500000 ? await resizeImage(imageBase64) : imageBase64;
 
@@ -209,7 +211,9 @@ export async function generateVideo(
     body: JSON.stringify({
       imageUrlBase64: processedBase64,
       userId,
-      toolId
+      toolId,
+      analysis,
+      config
     })
   });
 

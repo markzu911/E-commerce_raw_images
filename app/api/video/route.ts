@@ -7,13 +7,13 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { imageUrlBase64 } = body;
+    const { imageUrlBase64, analysis, config } = body;
 
     if (!imageUrlBase64) {
       return NextResponse.json({ success: false, error: 'Missing image data' }, { status: 400 });
     }
 
-    const operationName = await generateVideoServer(imageUrlBase64);
+    const operationName = await generateVideoServer(imageUrlBase64, analysis, config);
 
     return NextResponse.json({ 
       success: true, 

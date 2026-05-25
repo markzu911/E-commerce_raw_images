@@ -8,6 +8,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const operationName = searchParams.get('operationName');
 
+    const download = searchParams.get('download');
+
     if (!operationName) {
       return NextResponse.json({ success: false, error: 'Missing operationName' }, { status: 400 });
     }
@@ -22,7 +24,7 @@ export async function GET(req: NextRequest) {
     return new Response(videoRes.body as any, {
       headers: {
         'Content-Type': 'video/mp4',
-        'Content-Disposition': 'attachment; filename="fashion-ai-promo.mp4"',
+        'Content-Disposition': download ? 'attachment; filename="fashion-ai-promo.mp4"' : 'inline',
       },
     });
 

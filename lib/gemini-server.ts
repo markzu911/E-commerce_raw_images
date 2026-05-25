@@ -28,15 +28,29 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs = 120000, message =
   }
 }
 
-export async function generateVideoServer(imageBase64: string): Promise<string> {
+export async function generateVideoServer(
+  imageBase64: string,
+  analysis?: AnalysisData,
+  config?: PromptConfig
+): Promise<string> {
   const ai = getGeminiClient();
   
   const base64Data = imageBase64.split(',')[1];
   const mimeType = imageBase64.split(',')[0].split(':')[1].split(';')[0];
 
+  const productName = analysis?.productName || 'fashion product';
+  const category = analysis?.category || 'apparel';
+  const style = analysis?.style || 'modern';
+  
+  const videoPrompt = `Professional cinematic fashion showcase of ${productName} (${category}). 
+    Style: ${style}. 
+    Subtle camera pan and zoom, highlighting the textures and design. 
+    The product must remain consistent with the reference image. 
+    Studio lighting, clean background, high-end commercial quality.`;
+
   const operation = await ai.models.generateVideos({
     model: 'veo-3.1-lite-generate-preview',
-    prompt: 'Professional fashion product showcase with cinematic lighting and subtle camera movement. The product should remain the focus.',
+    prompt: videoPrompt,
     image: {
       imageBytes: base64Data,
       mimeType: mimeType,

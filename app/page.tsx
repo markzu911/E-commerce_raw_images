@@ -735,6 +735,7 @@ export default function Page() {
                 analysis={analysis!} 
                 userId={userId}
                 toolId={toolId}
+                config={config}
               />
             </div>
           </div>
@@ -868,7 +869,7 @@ export default function Page() {
   );
 }
 
-function ResultCard({ type, imgSrc, analysis, userId, toolId }: { type: string; imgSrc?: string; analysis: AnalysisData; userId: string; toolId: string }) {
+function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: string; imgSrc?: string; analysis: AnalysisData; userId: string; toolId: string; config: PromptConfig }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -923,7 +924,7 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId }: { type: string; 
     setIsVideoGenerating(true);
     try {
       const imgData = canvasRef.current.toDataURL();
-      const { videoUrl } = await generateVideo(imgData, userId, toolId);
+      const { videoUrl } = await generateVideo(imgData, userId, toolId, analysis, config);
       setVideoUrl(videoUrl);
       setIsVideoModalOpen(true);
     } catch (err: any) {
@@ -1130,9 +1131,9 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId }: { type: string; 
                 <Button 
                   className="rounded-full px-8 h-12 font-bold shadow-2xl" 
                   onClick={() => {
-                    // Force open in new tab if direct download fails due to CORS
+                    // Force download using the download query parameter
                     if (videoUrl) {
-                      window.open(videoUrl, '_blank');
+                      window.open(`${videoUrl}&download=1`, '_blank');
                     }
                   }}
                 >
