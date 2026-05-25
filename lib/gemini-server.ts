@@ -50,8 +50,11 @@ export async function generateVideoServer(
     Style: ${style}. ${colors ? `Colors: ${colors}.` : ''} ${materials ? `Materials: ${materials}.` : ''}
     Scene details: ${description || 'high-end elegant display'}.
     
+    MANDATORY 100% PRODUCT STYLE PRESERVATION SPECIFICATIONS:
+    - THE PRODUCT/GARMENT STYLE MUST REMAIN 100% INVARIANT AND UNCHANGED from the starting frame: Every detailed cut, neckline, sleeve length, collar shape, buttons, pockets, zippers, sewing lines, fabric patterns, prints, materials, and colors must be completely, flawlessly preserved with zero alterations, simplification, or design drift.
+    
     MOTION, POSTURE & EXPRESSION REQUIREMENTS:
-    1. NATURAL MODEL MOVEMENT & POSTURES: The model should perform natural, elegant, and fluid movements. Incorporate organic posture adjustments, shifting body weight, turning of the body or head slightly, and graceful limb/hand gestures to make it look lively and professional.
+    1. NATURAL MODEL MOVEMENT & POSTURES: The model should perform natural, elegant, and fluid movements. Incorporate organic posture adjustments, shifting body weight, turning of the body or head slightly, and graceful limb/hand gestures to make it look lively and professional, while keeping the garment style completely rigid and preserved.
     2. NATURAL FACIAL EXPRESSIONS: The model should display rich, natural, and friendly facial expressions, with realistic blinking, smiling warmly, head tilting, or gazing gracefully at or near the camera. No stiff or frozen faces.
     3. PRODUCT & CHARACTER IDENTITY CONSISTENCY: The model's identity (facial structure, hair) and the clothing's specific design, details, patterns, fabrics, materials, colors, and the background environment must remain consistent and recognizable from the starting frame.
     4. DYNAMIC & NATURAL WEAR PHYSICS: The clothing must move and drape realistically in response to the model's body postures, gestures, or a very gentle breeze, with no artificial texture sliding or pattern morphing.
@@ -227,7 +230,7 @@ function buildPrompt(
   
   if (type === 'main') {
     basePrompt = `【服装单品展示 - 无模特】
-    CRITICAL: 100% IDENTICAL to the reference product image. Zero modifications to shape, color, texture, or details.
+    CRITICAL: 100% IDENTICAL to the reference product image. Zero modifications to design, shape, cuts, collar/neckline shape, sleeve length, embroidery, buttons, zippers, pockets, patterns, textures, colors, or details. Replicate it flawlessly.
     Product: ${garmentDesc}
     Pure white background for product isolated display. Centered flat lay or hanging shot.
     NO TEXT, NO PEOPLE, NO MANNEQUINS.`;
@@ -235,12 +238,12 @@ function buildPrompt(
     if (hasModelImage) {
       basePrompt = `【面孔复刻 & 模特融合 - 最高优先级】
       1. MODEL: Identity and features MUST be exactly the same as Reference Image 1. Pose can be different and dynamic.
-      2. GARMENT: MUST be 100% IDENTICAL to the product in Reference Image 2. No changes in style, material, or color.
+      2. GARMENT: MUST be 100% IDENTICAL to the product in Reference Image 2. Absolutely zero modifications, omissions, or simplifications to design, shape, cuts, collar/neckline shape, sleeve length, stitches, buttons, zippers, pockets, patterns, textures, colors, or details are allowed.
       Vibe: ${vars.model_style}.
       Garment: ${garmentDesc}.`;
     } else {
       basePrompt = `【模特上身展示】
-      1. GARMENT: MUST be 100% IDENTICAL to the reference product image. Zero modifications.
+      1. GARMENT: MUST be 100% IDENTICAL to the reference product image. Absolutely zero modifications, omissions, or simplifications to design, shape, cuts, collar/neckline shape, sleeve length, stitches, buttons, zippers, pockets, patterns, textures, colors, or details are allowed.
       2. MODEL: Professional model, ${vars.model_style} vibe. Natural posing.
       Garment: ${garmentDesc}.`;
     }
@@ -318,7 +321,7 @@ export async function generateImageServer(
   }
   
   // Add a final forceful instruction
-  prompt += `\nFinal strict instruction: Keep the product from the reference image 100% unchanged. Do not reinterpret. Just replicate it perfectly on the model/scene.`;
+  prompt += `\nFinal strict instruction: Keep the product/garment design from the reference image 100% unchanged and preserved down to every detail (collar, cuffs, buttons, seams, prints, patterns, pockets, and fabric texture must be perfectly identical). Do not reinterpret or simplify. Replicate it with absolute precision and fidelity on the model/scene.`;
 
   parts.push({ text: prompt });
  
@@ -379,8 +382,8 @@ export async function generateCustomImageServer(
       qualityPrompt = '[QUALITY: 4K Ultra HD, masterpiece, 16k resolution, hyper-realistic, raw photo, intricate textures, sharp focus, cinematic lighting]. ';
     }
 
-    prompt = `CRITICAL TASK: Maintain 100% identity and fidelity of the product shown in the reference image. 
-    1. DO NOT change the product's shape, color, material, texture, or details. 
+    prompt = `CRITICAL TASK: Maintain 100% identity, style, and fidelity of the product shown in the reference image. 
+    1. DO NOT change the product's design, style, shape, cuts, neckline, sleeve length, pockets, buttons, patterns, fabric, color, or details. The product must remain completely invariant and identical.
     2. Place this EXACT and UNCHANGED product into the following creative context: ${qualityPrompt}${prompt}.
     3. The lighting and environment should naturally interact with the product without altering its inherent design.
     4. Pose variety is encouraged if there is a model, but the model's identity and the product's look must remain stable.`;
