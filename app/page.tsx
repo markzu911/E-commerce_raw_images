@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EditableTextField, EditableTagList } from '@/components/EditableField';
 import { AnalysisData, PromptConfig, Step, TextOverlayConfig } from '@/types';
-import { analyzeImage, generateImage, generateCustomImage } from '@/lib/gemini';
-import { Loader2, Upload, Download, CheckCircle, Image as ImageIcon, Sparkles, Maximize2, Edit2, Zap } from 'lucide-react';
+import { analyzeImage, generateImage, generateCustomImage, generateVideo } from '@/lib/gemini';
+import { Loader2, Upload, Download, CheckCircle, Image as ImageIcon, Sparkles, Maximize2, Edit2, Zap, Video, Play } from 'lucide-react';
 import { drawTextOverlay } from '@/lib/canvas-utils';
 
 const PRESET_SCENES = [
@@ -733,6 +733,8 @@ export default function Page() {
                 type={selectedType} 
                 imgSrc={generatedImages[selectedType]} 
                 analysis={analysis!} 
+                userId={userId}
+                toolId={toolId}
               />
             </div>
           </div>
@@ -866,10 +868,13 @@ export default function Page() {
   );
 }
 
-function ResultCard({ type, imgSrc, analysis }: { type: string; imgSrc?: string; analysis: AnalysisData }) {
+function ResultCard({ type, imgSrc, analysis, userId, toolId }: { type: string; imgSrc?: string; analysis: AnalysisData; userId: string; toolId: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isVideoGenerating, setIsVideoGenerating] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string>('');
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
   const [tConf, setTConf] = useState<TextOverlayConfig>({
     mainTitle: analysis?.productName || '时尚新品',
@@ -913,6 +918,23 @@ function ResultCard({ type, imgSrc, analysis }: { type: string; imgSrc?: string;
     drawCanvas();
   }, [drawCanvas]);
 
+  const handleGenerateVideo = async () => {
+    if (!imgSrc || !canvasRef.current) return;
+    setIsVideoGenerating(true);
+    try {
+      const imgData = canvasRef.current.toDataURL();
+      const { videoUrl } = await generateVideo(imgData, userId, toolId);
+      setVideoUrl(videoUrl);
+      setIsVideoModalOpen(true);
+    } catch (err: any) {
+      console.error('Video generation failed', err);
+      // We can use a global alert or a toast if available
+      alert(`视频生成失败: ${err.message}`);
+    } finally {
+      setIsVideoGenerating(false);
+    }
+  };
+
   const downloadImage = () => {
     if (canvasRef.current) {
       const link = document.createElement('a');
@@ -937,11 +959,46 @@ function ResultCard({ type, imgSrc, analysis }: { type: string; imgSrc?: string;
                   <Button size="icon" variant="secondary" className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20" onClick={() => setIsEditOpen(true)}>
                     <Edit2 className="w-6 h-6" />
                   </Button>
+                  <Button 
+                    size="icon" 
+                    variant="secondary" 
+                    className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20 overflow-hidden relative group/btn" 
+                    disabled={isVideoGenerating}
+                    onClick={handleGenerateVideo}
+                  >
+                    {isVideoGenerating ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    ) : (
+                      <Video className="w-6 h-6 group-hover/btn:scale-110 transition-transform" />
+                    )}
+                  </Button>
                 </div>
-                <Button variant="default" className="rounded-full px-8 h-12 font-bold shadow-xl shadow-primary/20" onClick={downloadImage}>
-                  <Download className="w-4 h-4 mr-2" />
-                  下载最终成品
-                </Button>
+                <div className="flex flex-col gap-3 w-full px-12">
+                  <Button variant="default" className="rounded-full w-full h-12 font-bold shadow-xl shadow-primary/20" onClick={downloadImage}>
+                    <Download className="w-4 h-4 mr-2" />
+                    下载最终成品
+                  </Button>
+                  {type === 'scene' && (
+                    <Button 
+                      variant="secondary" 
+                      className="rounded-full w-full h-12 font-bold shadow-xl shadow-black/10 bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-md"
+                      disabled={isVideoGenerating}
+                      onClick={handleGenerateVideo}
+                    >
+                      {isVideoGenerating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          正在生成展示视频...
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4 mr-2 fill-current" />
+                          生成产品展示视频
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             </>
           ) : (
@@ -1038,6 +1095,62 @@ function ResultCard({ type, imgSrc, analysis }: { type: string; imgSrc?: string;
               更新排版预览
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
+        <DialogContent className="max-w-4xl rounded-[40px] p-0 overflow-hidden bg-slate-900 border-none shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+           <div className="relative aspect-video bg-black">
+              {videoUrl ? (
+                <video 
+                  src={videoUrl} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  controls 
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-white">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                  <p className="text-xl font-bold tracking-tight">合成渲染中...</p>
+                </div>
+              )}
+              
+              <div className="absolute top-6 left-6 z-10">
+                <div className="flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-xl rounded-full border border-white/10">
+                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                   <span className="text-[10px] font-black uppercase text-white tracking-[0.2em]">Video Preview</span>
+                </div>
+              </div>
+              
+              <div className="absolute bottom-10 right-10 z-10">
+                <Button 
+                  className="rounded-full px-8 h-12 font-bold shadow-2xl" 
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = videoUrl;
+                    link.download = `fashion-ai-promo.mp4`;
+                    link.click();
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  下载展示视频
+                </Button>
+              </div>
+           </div>
+           <div className="p-10 bg-white dark:bg-slate-900">
+             <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                   <h3 className="text-2xl font-black tracking-tight">生成成功！视频合成已完成</h3>
+                   <p className="text-slate-400 text-sm font-medium">AI 已基于场景光影动态生成了针对该商品的 5 秒展示画面。</p>
+                </div>
+                <div className="flex gap-4">
+                  <Button variant="outline" className="rounded-full font-bold px-8" onClick={() => setIsVideoModalOpen(false)}>关闭</Button>
+                </div>
+             </div>
+           </div>
         </DialogContent>
       </Dialog>
     </div>

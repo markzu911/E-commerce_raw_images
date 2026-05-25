@@ -191,3 +191,42 @@ export async function generateCustomImage(
     recordId: data.image.recordId
   };
 }
+
+/**
+ * Generates a display video using our server-side API.
+ */
+export async function generateVideo(
+  imageBase64: string,
+  userId: string,
+  toolId: string
+): Promise<{ videoUrl: string }> {
+  // Use a smaller image for video generation prompt if base64 is still huge
+  const processedBase64 = imageBase64.length > 500000 ? await resizeImage(imageBase64) : imageBase64;
+
+  const res = await fetchWithTimeout('/api/video', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      imageUrlBase64: processedBase64,
+      userId,
+      toolId
+    })
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    let errorMsg = '视频生成失败';
+    try {
+      const parsed = JSON.parse(text);
+      errorMsg = parsed.error || errorMsg;
+    } catch {
+      errorMsg = `请求错误 ${res.status}: ${text.slice(0, 100)}`;
+    }
+    throw new Error(errorMsg);
+  }
+
+  const data = await res.json();
+  return {
+    videoUrl: data.videoUrl
+  };
+}
