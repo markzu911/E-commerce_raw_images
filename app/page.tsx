@@ -875,7 +875,6 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isVideoGenerating, setIsVideoGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string>('');
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
   const [tConf, setTConf] = useState<TextOverlayConfig>({
     mainTitle: analysis?.productName || '时尚新品',
@@ -922,14 +921,13 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
   const handleGenerateVideo = async () => {
     if (!imgSrc || !canvasRef.current) return;
     setIsVideoGenerating(true);
+    setVideoUrl(''); // Reset previous video
     try {
       const imgData = canvasRef.current.toDataURL();
       const { videoUrl } = await generateVideo(imgData, userId, toolId, analysis, config);
       setVideoUrl(videoUrl);
-      setIsVideoModalOpen(true);
     } catch (err: any) {
       console.error('Video generation failed', err);
-      // We can use a global alert or a toast if available
       alert(`视频生成失败: ${err.message}`);
     } finally {
       setIsVideoGenerating(false);
@@ -946,83 +944,152 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto animate-in zoom-in-95 duration-700">
-      <div className="bg-white dark:bg-slate-900 rounded-[48px] p-4 shadow-2xl shadow-slate-200 dark:shadow-black/50 border border-slate-100 dark:border-slate-800">
-        <div className="aspect-[3/4] relative rounded-[40px] overflow-hidden bg-slate-50 dark:bg-slate-950 group">
-          {imgSrc ? (
-            <>
-              <canvas ref={canvasRef} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col items-center justify-center gap-6 backdrop-blur-sm">
-                <div className="flex gap-4">
-                  <Button size="icon" variant="secondary" className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20" onClick={() => setIsPreviewOpen(true)}>
-                    <Maximize2 className="w-6 h-6" />
-                  </Button>
-                  <Button size="icon" variant="secondary" className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20" onClick={() => setIsEditOpen(true)}>
-                    <Edit2 className="w-6 h-6" />
-                  </Button>
-                  <Button 
-                    size="icon" 
-                    variant="secondary" 
-                    className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20 overflow-hidden relative group/btn" 
-                    disabled={isVideoGenerating}
-                    onClick={handleGenerateVideo}
-                  >
-                    {isVideoGenerating ? (
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                    ) : (
-                      <Video className="w-6 h-6 group-hover/btn:scale-110 transition-transform" />
-                    )}
-                  </Button>
-                </div>
-                <div className="flex flex-col gap-3 w-full px-12">
-                  <Button variant="default" className="rounded-full w-full h-12 font-bold shadow-xl shadow-primary/20" onClick={downloadImage}>
-                    <Download className="w-4 h-4 mr-2" />
-                    下载最终成品
-                  </Button>
-                  {type === 'scene' && (
+    <div className={`transition-all duration-700 flex flex-col lg:flex-row gap-8 items-start justify-center ${(isVideoGenerating || videoUrl) ? 'max-w-6xl' : 'max-w-lg'} mx-auto mb-20`}>
+      {/* Image Card Container */}
+      <div className="w-full max-w-lg animate-in zoom-in-95 duration-700">
+        <div className="bg-white dark:bg-slate-900 rounded-[48px] p-4 shadow-2xl shadow-slate-200 dark:shadow-black/50 border border-slate-100 dark:border-slate-800">
+          <div className="aspect-[3/4] relative rounded-[40px] overflow-hidden bg-slate-50 dark:bg-slate-950 group">
+            {imgSrc ? (
+              <>
+                <canvas ref={canvasRef} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col items-center justify-center gap-6 backdrop-blur-sm">
+                  <div className="flex gap-4">
+                    <Button size="icon" variant="secondary" className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20" onClick={() => setIsPreviewOpen(true)}>
+                      <Maximize2 className="w-6 h-6" />
+                    </Button>
+                    <Button size="icon" variant="secondary" className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20" onClick={() => setIsEditOpen(true)}>
+                      <Edit2 className="w-6 h-6" />
+                    </Button>
                     <Button 
+                      size="icon" 
                       variant="secondary" 
-                      className="rounded-full w-full h-12 font-bold shadow-xl shadow-black/10 bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-md"
+                      className="w-14 h-14 rounded-2xl shadow-xl shadow-black/20 overflow-hidden relative group/btn" 
                       disabled={isVideoGenerating}
                       onClick={handleGenerateVideo}
                     >
                       {isVideoGenerating ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          正在生成展示视频...
-                        </>
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
                       ) : (
-                        <>
-                          <Play className="w-4 h-4 mr-2 fill-current" />
-                          生成产品展示视频
-                        </>
+                        <Video className="w-6 h-6 group-hover/btn:scale-110 transition-transform" />
                       )}
                     </Button>
-                  )}
+                  </div>
+                  <div className="flex flex-col gap-3 w-full px-12">
+                    <Button variant="default" className="rounded-full w-full h-12 font-bold shadow-xl shadow-primary/20" onClick={downloadImage}>
+                      <Download className="w-4 h-4 mr-2" />
+                      下载最终成品
+                    </Button>
+                    {type === 'scene' && (
+                      <Button 
+                        variant="secondary" 
+                        className="rounded-full w-full h-12 font-bold shadow-xl shadow-black/10 bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-md"
+                        disabled={isVideoGenerating}
+                        onClick={handleGenerateVideo}
+                      >
+                        {isVideoGenerating ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            正在生成展示视频...
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4 mr-2 fill-current" />
+                            生成产品展示视频
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                  <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
+                </div>
+                <span className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-slate-300 animate-pulse">正在渲染中</span>
               </div>
-            </>
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
-              </div>
-              <span className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-slate-300 animate-pulse">正在渲染中</span>
-            </div>
-          )}
-        </div>
-        
-        <div className="py-6 px-4 flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-1 leading-none">画布类型</span>
-            <span className="text-xl font-black tracking-tight">{labels[type]}</span>
+            )}
           </div>
-          <div className="bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
-            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Premium Output</span>
+          
+          <div className="py-6 px-4 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-1 leading-none">画布类型</span>
+              <span className="text-xl font-black tracking-tight">{labels[type]}</span>
+            </div>
+            <div className="bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest">Premium Output</span>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Side Video Panel */}
+      {(isVideoGenerating || videoUrl) && (
+        <div className="w-full max-w-lg lg:mt-0 animate-in slide-in-from-right-20 duration-700">
+          <div className="bg-slate-900 rounded-[48px] p-4 shadow-2xl shadow-black/50 border border-slate-800 overflow-hidden">
+            <div className="aspect-[3/4] relative rounded-[40px] overflow-hidden bg-black flex flex-col items-center justify-center">
+              {videoUrl ? (
+                <>
+                  <video 
+                    src={videoUrl} 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    controls 
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-6 left-6 z-10">
+                    <div className="flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-xl rounded-full border border-white/10">
+                       <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                       <span className="text-[10px] font-black uppercase text-white tracking-[0.2em]">Video Rendered</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4 text-white">
+                  <div className="relative">
+                    <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                    <Video className="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
+                  </div>
+                  <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-400 mt-2">Veo 引擎渲染中</p>
+                  <p className="text-[10px] text-slate-500 max-w-[200px] text-center leading-relaxed">
+                    正在基于光影追踪进行动态视频合成，这可能需要 30-60 秒...
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="py-6 px-4 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 leading-none">渲染引擎</span>
+                <span className="text-xl font-black tracking-tight text-white">Google Veo 3.1</span>
+              </div>
+              {videoUrl && (
+                <Button 
+                  size="icon"
+                  className="w-12 h-12 rounded-full shadow-xl shadow-primary/20" 
+                  onClick={() => window.open(`${videoUrl}&download=1`, '_blank')}
+                >
+                  <Download className="w-5 h-5" />
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          {videoUrl && (
+            <div className="mt-6 p-6 bg-primary/10 rounded-3xl border border-primary/20 animate-in fade-in slide-in-from-top-2">
+              <h4 className="text-sm font-bold text-primary mb-1">生成成功！</h4>
+              <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                动态视频已合成完毕。您可以保存此 5 秒的产品展示样片用于社交媒体投放。
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-1 overflow-hidden bg-transparent border-none shadow-none">
@@ -1099,62 +1166,6 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
-        <DialogContent className="max-w-4xl rounded-[40px] p-0 overflow-hidden bg-slate-900 border-none shadow-[0_0_100px_rgba(0,0,0,0.5)]">
-           <div className="relative aspect-video bg-black">
-              {videoUrl ? (
-                <video 
-                  src={videoUrl} 
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline 
-                  controls 
-                  crossOrigin="anonymous"
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-white">
-                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                  <p className="text-xl font-bold tracking-tight">合成渲染中...</p>
-                </div>
-              )}
-              
-              <div className="absolute top-6 left-6 z-10">
-                <div className="flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-xl rounded-full border border-white/10">
-                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                   <span className="text-[10px] font-black uppercase text-white tracking-[0.2em]">Video Preview</span>
-                </div>
-              </div>
-              
-              <div className="absolute bottom-10 right-10 z-10">
-                <Button 
-                  className="rounded-full px-8 h-12 font-bold shadow-2xl" 
-                  onClick={() => {
-                    // Force download using the download query parameter
-                    if (videoUrl) {
-                      window.open(`${videoUrl}&download=1`, '_blank');
-                    }
-                  }}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  保存视频
-                </Button>
-              </div>
-           </div>
-           <div className="p-10 bg-white dark:bg-slate-900">
-             <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                   <h3 className="text-2xl font-black tracking-tight">生成成功！视频合成已完成</h3>
-                   <p className="text-slate-400 text-sm font-medium">AI 已基于场景光影动态生成了针对该商品的 5 秒展示画面。</p>
-                </div>
-                <div className="flex gap-4">
-                  <Button variant="outline" className="rounded-full font-bold px-8" onClick={() => setIsVideoModalOpen(false)}>关闭</Button>
-                </div>
-             </div>
-           </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
