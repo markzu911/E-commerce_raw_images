@@ -179,14 +179,14 @@ export async function generateImageServer(
   const hasModelImage = !!modelUrlBase64;
   const hasSceneImage = !!sceneUrlBase64;
   
-  let prompt = buildPrompt(type, analysis, config, hasModelImage);
-  
-  // Enhancement for 2K/4K resolutions
+  let qualityBoost = '';
   if (config.resolution === '2k') {
-    prompt += '\n[QUALITY BOOST: 2K High Definition, 8k resolution, photorealistic, sharp focus, professional fashion photography, extremely detailed textures, clean edges, studio quality lighting]';
+    qualityBoost = '[QUALITY: 2K UHD, 8k resolution, high definition, sharp focus, professional studio photography, extremely detailed textures]. ';
   } else if (config.resolution === '4k') {
-    prompt += '\n[QUALITY BOOST: 4K Ultra HD, masterpiece, extreme cinematic lighting, hyper-realistic, super-resolution, intricate details, raw photo quality, sharp details on fabric and skin, high dynamic range]';
+    qualityBoost = '[QUALITY: 4K Ultra HD, masterpiece, raw photo, 16k resolution, hyper-realistic, super-resolution, cinematic lighting, extreme detail, high dynamic range]. ';
   }
+  
+  let prompt = qualityBoost + buildPrompt(type, analysis, config, hasModelImage);
   
   const extractParts = (b64: string) => {
     return {
@@ -236,10 +236,10 @@ export async function generateImageServer(
         aspectRatio: config?.aspectRatio || '3:4',
       },
       safetySettings: [
-        { category: HarmCategory.HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
       ]
     }
   });
@@ -278,16 +278,16 @@ export async function generateCustomImageServer(
     // Quality enhancement for custom mode
     let qualityPrompt = '';
     if (config?.resolution === '2k') {
-      qualityPrompt = '\n[QUALITY: 2K UHD, sharp focus, extreme detail, 8k resolution, professional photography]';
+      qualityPrompt = '[QUALITY: 2K UHD, 8k resolution, sharp focus, extreme detail, professional photography]. ';
     } else if (config?.resolution === '4k') {
-      qualityPrompt = '\n[QUALITY: 4K Ultra HD, masterpiece, hyper-realistic, raw photo, intricate textures, sharp focus]';
+      qualityPrompt = '[QUALITY: 4K Ultra HD, masterpiece, 16k resolution, hyper-realistic, raw photo, intricate textures, sharp focus, cinematic lighting]. ';
     }
 
     prompt = `CRITICAL TASK: Maintain 100% identity and fidelity of the product shown in the reference image. 
     1. DO NOT change the product's shape, color, material, texture, or details. 
-    2. Place this EXACT and UNCHANGED product into the following creative context: ${prompt}.
+    2. Place this EXACT and UNCHANGED product into the following creative context: ${qualityPrompt}${prompt}.
     3. The lighting and environment should naturally interact with the product without altering its inherent design.
-    4. Pose variety is encouraged if there is a model, but the model's identity and the product's look must remain stable. ${qualityPrompt}`;
+    4. Pose variety is encouraged if there is a model, but the model's identity and the product's look must remain stable.`;
   }
   parts.push({ text: prompt });
   
@@ -301,10 +301,10 @@ export async function generateCustomImageServer(
         aspectRatio: config?.aspectRatio || '3:4',
       },
       safetySettings: [
-        { category: HarmCategory.HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
       ]
     }
   });
