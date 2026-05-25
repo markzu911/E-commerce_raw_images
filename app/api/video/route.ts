@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     // In a real scenario, this would call a video generation service like VEO or Kling
     return NextResponse.json({ 
       success: true, 
-      videoUrl: 'https://cdn.pixabay.com/video/2016/10/18/5948-186940381_large.mp4', // Fast fashion/portrait-like sample
+      videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4', // More stable CDN source
       message: '视频生成任务已提交，系统正在后台进行光影渲染与动态合成。'
     });
 

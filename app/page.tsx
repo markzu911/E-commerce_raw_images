@@ -1109,6 +1109,7 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId }: { type: string; 
                   muted 
                   playsInline 
                   controls 
+                  crossOrigin="anonymous"
                   className="w-full h-full object-contain"
                 />
               ) : (
@@ -1129,14 +1130,14 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId }: { type: string; 
                 <Button 
                   className="rounded-full px-8 h-12 font-bold shadow-2xl" 
                   onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = videoUrl;
-                    link.download = `fashion-ai-promo.mp4`;
-                    link.click();
+                    // Force open in new tab if direct download fails due to CORS
+                    if (videoUrl) {
+                      window.open(videoUrl, '_blank');
+                    }
                   }}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  下载展示视频
+                  保存视频
                 </Button>
               </div>
            </div>
