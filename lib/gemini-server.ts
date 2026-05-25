@@ -83,7 +83,7 @@ export async function getVideoStatusServer(operationName: string): Promise<{ don
   return { done: !!updated.done };
 }
 
-export async function downloadVideoServer(operationName: string): Promise<Response> {
+export async function downloadVideoServer(operationName: string, rangeHeader?: string | null): Promise<Response> {
   const ai = getGeminiClient();
   const op = new GenerateVideosOperation();
   op.name = operationName;
@@ -96,9 +96,20 @@ export async function downloadVideoServer(operationName: string): Promise<Respon
   }
 
   const apiKey = (process.env.GEMINI_API_KEY || process.env.API_KEY || '').trim();
-  const videoRes = await fetch(uri, {
-    headers: { 'x-goog-api-key': apiKey },
-  });
+  const headers: Record<string, string> = {
+    'x-goog-api-key': apiKey,
+  };
+  
+  if (rangeHeader) {
+    headers['range'] = rangeHeader;
+  }
+  
+  const videoRes = await fetch(uri, { headers });
+  
+  if (!videoRes.ok) {
+    const text = await videoRes.text().catch(() => 'Unknown error');
+    throw new Error(`Google API video fetch failed with status ${videoRes.status}: ${text}`);
+  }
 
   return videoRes;
 }

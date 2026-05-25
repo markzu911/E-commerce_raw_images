@@ -1093,30 +1093,30 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
         </div>
       )}
 
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent 
-          className="sm:max-w-[85vw] sm:max-h-[90vh] h-[90vh] w-[95vw] flex flex-col p-0 overflow-hidden bg-transparent border-none shadow-none"
-          showCloseButton={false}
+      {isPreviewOpen && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300"
+          onClick={() => setIsPreviewOpen(false)}
         >
-          {imgSrc && (
-            <div className="flex-1 flex items-center justify-center p-4 relative">
+          <div className="relative max-w-[95vw] max-h-[95vh] w-auto h-auto flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            {imgSrc && (
               <img 
                 src={previewUrl || imgSrc} 
                 alt="Preview" 
-                className="max-w-full max-h-full object-contain rounded-3xl shadow-2xl border-4 border-white" 
+                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl border border-white/10 animate-in zoom-in-95 duration-300" 
               />
-              <Button 
-                variant="secondary"
-                size="icon"
-                className="absolute top-8 right-8 w-12 h-12 rounded-full shadow-2xl border border-white/10 backdrop-blur-md bg-black/40 hover:bg-black/60 text-white transition-all hover:scale-105"
-                onClick={() => setIsPreviewOpen(false)}
-              >
-                <X className="w-6 h-6" />
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            )}
+            <Button 
+              variant="secondary"
+              size="icon"
+              className="absolute -top-4 -right-4 md:top-6 md:right-6 w-12 h-12 rounded-full shadow-2xl border border-white/10 backdrop-blur-md bg-black/40 hover:bg-black/60 text-white transition-all hover:scale-105 z-[110]"
+              onClick={() => setIsPreviewOpen(false)}
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-md rounded-[32px] p-8">

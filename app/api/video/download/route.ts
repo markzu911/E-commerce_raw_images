@@ -14,21 +14,24 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing operationName' }, { status: 400 });
     }
 
-    const videoRes = await downloadVideoServer(operationName);
+    const rangeHeader = req.headers.get('range');
+    const videoRes = await downloadVideoServer(operationName, rangeHeader);
 
-    // Instead of streaming which can cause range query issues and buffering problems,
-    // read the entire body as an ArrayBuffer and return a standard response with a Content-Length.
-    const arrayBuffer = await videoRes.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const headers = new Headers();
+    videoRes.headers.forEach((value, key) => {
+      // Clean up server compression and caching headers to prevent browser stream buffering issues
+      if (!['content-encoding', 'transfer-encoding', 'connection'].includes(key.toLowerCase())) {
+        headers.set(key, value);
+      }
+    });
 
-    // Create a new response with the video stream
-    return new Response(buffer, {
-      headers: {
-        'Content-Type': 'video/mp4',
-        'Content-Length': buffer.length.toString(),
-        'Accept-Ranges': 'bytes',
-        'Content-Disposition': download ? 'attachment; filename="fashion-ai-promo.mp4"' : 'inline',
-      },
+    headers.set('Content-Type', 'video/mp4');
+    headers.set('Content-Disposition', download ? 'attachment; filename="fashion-ai-promo.mp4"' : 'inline');
+
+    return new Response(videoRes.body, {
+      status: videoRes.status,
+      statusText: videoRes.statusText,
+      headers,
     });
 
   } catch (error: any) {
