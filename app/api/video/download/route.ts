@@ -16,14 +16,17 @@ export async function GET(req: NextRequest) {
 
     const videoRes = await downloadVideoServer(operationName);
 
-    if (!videoRes.body) {
-      throw new Error('Video response has no body');
-    }
+    // Instead of streaming which can cause range query issues and buffering problems,
+    // read the entire body as an ArrayBuffer and return a standard response with a Content-Length.
+    const arrayBuffer = await videoRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
     // Create a new response with the video stream
-    return new Response(videoRes.body as any, {
+    return new Response(buffer, {
       headers: {
         'Content-Type': 'video/mp4',
+        'Content-Length': buffer.length.toString(),
+        'Accept-Ranges': 'bytes',
         'Content-Disposition': download ? 'attachment; filename="fashion-ai-promo.mp4"' : 'inline',
       },
     });

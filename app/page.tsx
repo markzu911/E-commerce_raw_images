@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { EditableTextField, EditableTagList } from '@/components/EditableField';
 import { AnalysisData, PromptConfig, Step, TextOverlayConfig } from '@/types';
 import { analyzeImage, generateImage, generateCustomImage, generateVideo } from '@/lib/gemini';
-import { Loader2, Upload, Download, CheckCircle, Image as ImageIcon, Sparkles, Maximize2, Edit2, Zap, Video, Play } from 'lucide-react';
+import { Loader2, Upload, Download, CheckCircle, Image as ImageIcon, Sparkles, Maximize2, Edit2, Zap, Video, Play, X } from 'lucide-react';
 import { drawTextOverlay } from '@/lib/canvas-utils';
 
 const PRESET_SCENES = [
@@ -1042,7 +1042,6 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
                     muted 
                     playsInline 
                     controls 
-                    crossOrigin="anonymous"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-6 left-6 z-10">
@@ -1095,14 +1094,25 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
       )}
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-1 overflow-hidden bg-transparent border-none shadow-none">
+        <DialogContent 
+          className="sm:max-w-[85vw] sm:max-h-[90vh] h-[90vh] w-[95vw] flex flex-col p-0 overflow-hidden bg-transparent border-none shadow-none"
+          showCloseButton={false}
+        >
           {imgSrc && (
-            <div className="flex-1 flex items-center justify-center p-4">
+            <div className="flex-1 flex items-center justify-center p-4 relative">
               <img 
                 src={previewUrl || imgSrc} 
                 alt="Preview" 
                 className="max-w-full max-h-full object-contain rounded-3xl shadow-2xl border-4 border-white" 
               />
+              <Button 
+                variant="secondary"
+                size="icon"
+                className="absolute top-8 right-8 w-12 h-12 rounded-full shadow-2xl border border-white/10 backdrop-blur-md bg-black/40 hover:bg-black/60 text-white transition-all hover:scale-105"
+                onClick={() => setIsPreviewOpen(false)}
+              >
+                <X className="w-6 h-6" />
+              </Button>
             </div>
           )}
         </DialogContent>
