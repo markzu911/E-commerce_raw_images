@@ -201,7 +201,7 @@ export async function generateVideo(
   toolId: string,
   analysis?: AnalysisData,
   config?: PromptConfig
-): Promise<{ videoUrl: string }> {
+): Promise<{ videoUrl: string; downloadUrl: string }> {
   const processedBase64 = imageBase64.length > 500000 ? await resizeImage(imageBase64) : imageBase64;
 
   // 1. Start job
@@ -247,9 +247,20 @@ export async function generateVideo(
     }
 
     if (done) {
-      // 3. Return the download URL
-      const videoUrl = `/api/video/download?operationName=${encodeURIComponent(operationName)}`;
-      return { videoUrl };
+      // 3. Return the static download URL and process/fetch a blob URL for the player
+      const downloadUrl = `/api/video/download?operationName=${encodeURIComponent(operationName)}`;
+      try {
+        const downloadRes = await fetch(downloadUrl);
+        if (!downloadRes.ok) {
+          throw new Error(`Failed to fetch video resource for embedding`);
+        }
+        const blob = await downloadRes.blob();
+        const videoUrl = URL.createObjectURL(blob);
+        return { videoUrl, downloadUrl };
+      } catch (err) {
+        console.error('Failed to create local blob URL, using fallback download URL', err);
+        return { videoUrl: downloadUrl, downloadUrl };
+      }
     }
   }
 

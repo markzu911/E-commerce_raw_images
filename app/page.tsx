@@ -875,6 +875,7 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isVideoGenerating, setIsVideoGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string>('');
+  const [videoDownloadUrl, setVideoDownloadUrl] = useState<string>('');
   
   const [tConf, setTConf] = useState<TextOverlayConfig>({
     mainTitle: analysis?.productName || '时尚新品',
@@ -922,10 +923,12 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
     if (!imgSrc || !canvasRef.current) return;
     setIsVideoGenerating(true);
     setVideoUrl(''); // Reset previous video
+    setVideoDownloadUrl('');
     try {
       const imgData = canvasRef.current.toDataURL();
-      const { videoUrl } = await generateVideo(imgData, userId, toolId, analysis, config);
+      const { videoUrl, downloadUrl } = await generateVideo(imgData, userId, toolId, analysis, config);
       setVideoUrl(videoUrl);
+      setVideoDownloadUrl(downloadUrl);
     } catch (err: any) {
       console.error('Video generation failed', err);
       alert(`视频生成失败: ${err.message}`);
@@ -1072,7 +1075,7 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
                 <Button 
                   size="icon"
                   className="w-12 h-12 rounded-full shadow-xl shadow-primary/20" 
-                  onClick={() => window.open(`${videoUrl}&download=1`, '_blank')}
+                  onClick={() => window.open(`${videoDownloadUrl || videoUrl}&download=1`, '_blank')}
                 >
                   <Download className="w-5 h-5" />
                 </Button>
