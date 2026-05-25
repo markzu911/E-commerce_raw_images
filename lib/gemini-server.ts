@@ -41,12 +41,22 @@ export async function generateVideoServer(
   const productName = analysis?.productName || 'fashion product';
   const category = analysis?.category || 'apparel';
   const style = analysis?.style || 'modern';
+  const colors = analysis?.colors?.join(', ') || '';
+  const materials = analysis?.materials || '';
+  const description = analysis?.description || '';
   
-  const videoPrompt = `Professional cinematic fashion showcase of ${productName} (${category}). 
-    Style: ${style}. 
-    Subtle camera pan and zoom, highlighting the textures and design. 
-    The product must remain consistent with the reference image. 
-    Studio lighting, clean background, high-end commercial quality.`;
+  // Highly explicit preservation rules for Google Veo to lock product/model/background but allow natural posture and expression changes
+  const videoPrompt = `Professional cinematic high-end showcase of ${productName} (${category}) worn by the model. 
+    Style: ${style}. ${colors ? `Colors: ${colors}.` : ''} ${materials ? `Materials: ${materials}.` : ''}
+    Scene details: ${description || 'high-end elegant display'}.
+    
+    MOTION, POSTURE & EXPRESSION REQUIREMENTS:
+    1. NATURAL MODEL MOVEMENT & POSTURES: The model should perform natural, elegant, and fluid movements. Incorporate organic posture adjustments, shifting body weight, turning of the body or head slightly, and graceful limb/hand gestures to make it look lively and professional.
+    2. NATURAL FACIAL EXPRESSIONS: The model should display rich, natural, and friendly facial expressions, with realistic blinking, smiling warmly, head tilting, or gazing gracefully at or near the camera. No stiff or frozen faces.
+    3. PRODUCT & CHARACTER IDENTITY CONSISTENCY: The model's identity (facial structure, hair) and the clothing's specific design, details, patterns, fabrics, materials, colors, and the background environment must remain consistent and recognizable from the starting frame.
+    4. DYNAMIC & NATURAL WEAR PHYSICS: The clothing must move and drape realistically in response to the model's body postures, gestures, or a very gentle breeze, with no artificial texture sliding or pattern morphing.
+    5. NO WARPING OR MORPHING: Rigidly prevent any AI warping, structural melting, sudden texture changes, or distortion of the model, clothing, or scene. Smooth cinematic camera motion (e.g. slow zoom, gentle track).
+    6. HIGH-FIDELITY LUXURY LIGHTING: Premium luxury studio lighting. No text, logos, or captions.`;
 
   const operation = await ai.models.generateVideos({
     model: 'veo-3.1-lite-generate-preview',
