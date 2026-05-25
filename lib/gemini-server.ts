@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type, HarmCategory, HarmBlockThreshold } from '@google/genai';
+import { GoogleGenAI, Type, HarmCategory, HarmBlockThreshold, GenerateVideosOperation } from '@google/genai';
 import { AnalysisData, PromptConfig } from '@/types';
 
 function getGeminiClient() {
@@ -26,6 +26,67 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs = 120000, message =
     clearTimeout(timer!);
     throw error;
   }
+}
+
+export async function generateVideoServer(imageBase64: string): Promise<string> {
+  const ai = getGeminiClient();
+  
+  const base64Data = imageBase64.split(',')[1];
+  const mimeType = imageBase64.split(',')[0].split(':')[1].split(';')[0];
+
+  const operation = await ai.models.generateVideos({
+    model: 'veo-3.1-lite-generate-preview',
+    prompt: 'Professional fashion product showcase with cinematic lighting and subtle camera movement. The product should remain the focus.',
+    image: {
+      imageBytes: base64Data,
+      mimeType: mimeType,
+    },
+    config: {
+      numberOfVideos: 1,
+      resolution: '720p',
+      aspectRatio: '9:16'
+    }
+  });
+
+  if (!operation.name) {
+    throw new Error('Failed to start video generation operation: No operation name returned');
+  }
+
+  return operation.name;
+}
+
+export async function getVideoStatusServer(operationName: string): Promise<{ done: boolean; error?: string }> {
+  const ai = getGeminiClient();
+  const op = new GenerateVideosOperation();
+  op.name = operationName;
+  
+  const updated = await ai.operations.getVideosOperation({ operation: op });
+  
+  if (updated.error) {
+    return { done: true, error: (updated.error as any).message || '视频生成出错' };
+  }
+  
+  return { done: !!updated.done };
+}
+
+export async function downloadVideoServer(operationName: string): Promise<Response> {
+  const ai = getGeminiClient();
+  const op = new GenerateVideosOperation();
+  op.name = operationName;
+  
+  const updated = await ai.operations.getVideosOperation({ operation: op });
+  const uri = updated.response?.generatedVideos?.[0]?.video?.uri;
+  
+  if (!uri) {
+    throw new Error('Video URI not found in completed operation');
+  }
+
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.API_KEY || '').trim();
+  const videoRes = await fetch(uri, {
+    headers: { 'x-goog-api-key': apiKey },
+  });
+
+  return videoRes;
 }
 
 export async function analyzeImageServer(imageBase64: string, type: string): Promise<AnalysisData> {

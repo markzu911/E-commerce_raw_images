@@ -193,17 +193,17 @@ export async function generateCustomImage(
 }
 
 /**
- * Generates a display video using our server-side API.
+ * Generates a display video using our server-side API with polling.
  */
 export async function generateVideo(
   imageBase64: string,
   userId: string,
   toolId: string
 ): Promise<{ videoUrl: string }> {
-  // Use a smaller image for video generation prompt if base64 is still huge
   const processedBase64 = imageBase64.length > 500000 ? await resizeImage(imageBase64) : imageBase64;
 
-  const res = await fetchWithTimeout('/api/video', {
+  // 1. Start job
+  const startRes = await fetchWithTimeout('/api/video', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -213,20 +213,41 @@ export async function generateVideo(
     })
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    let errorMsg = '视频生成失败';
-    try {
-      const parsed = JSON.parse(text);
-      errorMsg = parsed.error || errorMsg;
-    } catch {
-      errorMsg = `请求错误 ${res.status}: ${text.slice(0, 100)}`;
-    }
-    throw new Error(errorMsg);
+  if (!startRes.ok) {
+    const text = await startRes.text();
+    throw new Error(`启动错误 ${startRes.status}: ${text.slice(0, 100)}`);
   }
 
-  const data = await res.json();
-  return {
-    videoUrl: data.videoUrl
-  };
+  const { operationName } = await startRes.json();
+
+  // 2. Poll status
+  let attempts = 0;
+  const maxAttempts = 120; // 120 * 5s = 600s = 10 minutes
+  
+  while (attempts < maxAttempts) {
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    attempts++;
+
+    const statusRes = await fetch('/api/video/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operationName })
+    });
+
+    if (!statusRes.ok) continue;
+
+    const { done, error } = await statusRes.json();
+    
+    if (error) {
+      throw new Error(`视频生成错误: ${error}`);
+    }
+
+    if (done) {
+      // 3. Return the download URL
+      const videoUrl = `/api/video/download?operationName=${encodeURIComponent(operationName)}`;
+      return { videoUrl };
+    }
+  }
+
+  throw new Error('视频生成超时，模型处理耗时过长，请稍后刷新重试。');
 }
