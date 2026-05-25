@@ -925,8 +925,28 @@ function ResultCard({ type, imgSrc, analysis, userId, toolId, config }: { type: 
     setVideoUrl(''); // Reset previous video
     setVideoDownloadUrl('');
     try {
-      const imgData = canvasRef.current.toDataURL();
-      const { videoUrl, downloadUrl } = await generateVideo(imgData, userId, toolId, analysis, config);
+      // Create a temporary canvas to draw the raw image WITHOUT any text overlays
+      const tempCanvas = document.createElement('canvas');
+      const ctx = tempCanvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get 2D context');
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      const cleanImgData = await new Promise<string>((resolve, reject) => {
+        img.onload = () => {
+          tempCanvas.width = img.width;
+          tempCanvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          resolve(tempCanvas.toDataURL('image/jpeg', 0.95));
+        };
+        img.onerror = () => {
+          reject(new Error('Failed to load raw image to generate video'));
+        };
+        img.src = imgSrc;
+      });
+
+      const { videoUrl, downloadUrl } = await generateVideo(cleanImgData, userId, toolId, analysis, config);
       setVideoUrl(videoUrl);
       setVideoDownloadUrl(downloadUrl);
     } catch (err: any) {
