@@ -181,6 +181,13 @@ export async function generateImageServer(
   
   let prompt = buildPrompt(type, analysis, config, hasModelImage);
   
+  // Enhancement for 2K/4K resolutions
+  if (config.resolution === '2k') {
+    prompt += '\n[QUALITY BOOST: 2K High Definition, 8k resolution, photorealistic, sharp focus, professional fashion photography, extremely detailed textures, clean edges, studio quality lighting]';
+  } else if (config.resolution === '4k') {
+    prompt += '\n[QUALITY BOOST: 4K Ultra HD, masterpiece, extreme cinematic lighting, hyper-realistic, super-resolution, intricate details, raw photo quality, sharp details on fabric and skin, high dynamic range]';
+  }
+  
   const extractParts = (b64: string) => {
     return {
       mimeType: b64.split(',')[0].split(':')[1].split(';')[0],
@@ -227,7 +234,13 @@ export async function generateImageServer(
     config: {
       imageConfig: {
         aspectRatio: config?.aspectRatio || '3:4',
-      }
+      },
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+      ]
     }
   });
 
@@ -261,11 +274,20 @@ export async function generateCustomImageServer(
     parts.push({
       inlineData: extractParts(referenceImageBase64)
     });
+    
+    // Quality enhancement for custom mode
+    let qualityPrompt = '';
+    if (config?.resolution === '2k') {
+      qualityPrompt = '\n[QUALITY: 2K UHD, sharp focus, extreme detail, 8k resolution, professional photography]';
+    } else if (config?.resolution === '4k') {
+      qualityPrompt = '\n[QUALITY: 4K Ultra HD, masterpiece, hyper-realistic, raw photo, intricate textures, sharp focus]';
+    }
+
     prompt = `CRITICAL TASK: Maintain 100% identity and fidelity of the product shown in the reference image. 
     1. DO NOT change the product's shape, color, material, texture, or details. 
     2. Place this EXACT and UNCHANGED product into the following creative context: ${prompt}.
     3. The lighting and environment should naturally interact with the product without altering its inherent design.
-    4. Pose variety is encouraged if there is a model, but the model's identity and the product's look must remain stable.`;
+    4. Pose variety is encouraged if there is a model, but the model's identity and the product's look must remain stable. ${qualityPrompt}`;
   }
   parts.push({ text: prompt });
   
@@ -277,7 +299,13 @@ export async function generateCustomImageServer(
     config: {
       imageConfig: {
         aspectRatio: config?.aspectRatio || '3:4',
-      }
+      },
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+      ]
     }
   });
 
