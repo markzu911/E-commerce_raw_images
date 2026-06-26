@@ -29,6 +29,7 @@ export interface PromptConfig {
   sceneTheme: string;
   resolution?: '1k' | '2k' | '4k';
   aspectRatio?: '1:1' | '3:4' | '9:16';
+  isCustomScene?: boolean;
 }
 
 export interface TextOverlayConfig {

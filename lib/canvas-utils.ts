@@ -57,41 +57,145 @@ export function drawTextOverlay(
       break;
     }
     case 'detail': {
-      // Top left 'Detail' badge
-      ctx.fillStyle = '#000';
-      ctx.fillRect(20, 20, 140, 40);
-      setFont(20, 'bold');
-      drawText('细节展示 DETAIL', 90, 47, '#fff', 'center');
+      // 1. Elegant Top-Left Designer Badge
+      const badgeW = 160;
+      const badgeH = 40;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.beginPath();
+      ctx.roundRect(30, 30, badgeW, badgeH, 12);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-      // Detail info
-      const gradientBg = ctx.createLinearGradient(width - 250, 0, width, 0);
-      gradientBg.addColorStop(0, 'rgba(0,0,0,0)');
-      gradientBg.addColorStop(1, 'rgba(0,0,0,0.6)');
-      ctx.fillStyle = gradientBg;
-      ctx.fillRect(width - 250, 0, 250, height);
+      setFont(12, 'bold');
+      drawText('DETAIL SHOTS', 30 + (badgeW / 2), 48, '#fa8c16', 'center');
+      setFont(10, 'normal');
+      drawText('• 细节展示', 30 + (badgeW / 2), 62, '#fff', 'center');
+
+      // 2. High-end Spec Sheet Card (Glassmorphism Sidebar Card)
+      const cardW = 260;
+      const cardH = 320;
+      const cardX = width - cardW - 30;
+      const cardY = (height - cardH) / 2;
+
+      // Card Background
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, 24);
+      ctx.fill();
+      // Card subtle border
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Card Header
+      setFont(10, 'bold');
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.textAlign = 'left';
+      ctx.fillText('GARMENT SPECIFICATIONS', cardX + 24, cardY + 36);
+
+      // Card Divider Line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(cardX + 24, cardY + 48);
+      ctx.lineTo(cardX + cardW - 24, cardY + 48);
+      ctx.stroke();
+
+      // Detail specs
+      const labels = ['FABRIC & STYLE', 'MATERIAL SPEC', 'COLLECTION', 'SEASON'];
+      const defaultInfo = ['匠心剪裁', '高端用料', '典雅风范', '四季通用'];
       
-      setFont(20);
-      config.detailInfo.forEach((info, idx) => {
-        drawText(info, width - 20, 100 + (idx * 40), '#fff', 'right');
-      });
+      for (let i = 0; i < 4; i++) {
+        const itemY = cardY + 75 + (i * 60);
+        const valueText = config.detailInfo[i] || defaultInfo[i];
+
+        // Label
+        setFont(9, 'bold');
+        ctx.fillStyle = '#fa8c16';
+        ctx.textAlign = 'left';
+        ctx.fillText(labels[i], cardX + 24, itemY);
+
+        // Value text
+        setFont(14, 'bold');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(valueText.length > 18 ? valueText.slice(0, 17) + '...' : valueText, cardX + 24, itemY + 22);
+      }
       break;
     }
     case 'sellingPoint': {
-      // Top background
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
-      ctx.fillRect(0, 0, width, 80);
-      setFont(32, 'bold');
-      drawText(config.mainTitle, 30, 52, '#fff');
+      // 1. Premium Lookbook Header overlay at the top (Modern magazine format)
+      // Subtle background scrim
+      const scrim = ctx.createLinearGradient(0, 0, 0, 160);
+      scrim.addColorStop(0, 'rgba(15, 23, 42, 0.85)');
+      scrim.addColorStop(1, 'rgba(15, 23, 42, 0)');
+      ctx.fillStyle = scrim;
+      ctx.fillRect(0, 0, width, 160);
 
-      // Bottom orange badges
+      // Title & Brand Label
+      setFont(11, 'bold');
+      drawText('PREMIUM BRAND CAMPAIGN', 30, 40, '#fa8c16');
+      
+      setFont(28, 'bold');
+      drawText(config.mainTitle, 30, 78, '#ffffff');
+
+      // Thin elegant separator line
+      ctx.strokeStyle = 'rgba(25fa, 140, 22, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(30, 96);
+      ctx.lineTo(180, 96);
+      ctx.stroke();
+
+      setFont(11, 'normal');
+      drawText('EXCLUSIVE COMFORT & TIMELESS AESTHETIC', 30, 114, '#cccccc');
+
+      // 2. Sophisticated Bottom Pill Badges for Selling Points
+      // Subtle bottom dark gradient
+      const bottomScrim = ctx.createLinearGradient(0, height - 180, 0, height);
+      bottomScrim.addColorStop(0, 'rgba(0,0,0,0)');
+      bottomScrim.addColorStop(1, 'rgba(15, 23, 42, 0.75)');
+      ctx.fillStyle = bottomScrim;
+      ctx.fillRect(0, height - 180, width, 180);
+
       config.sellingPointTexts.forEach((pt, idx) => {
-        const y = height - 60 - (idx * 50);
+        if (!pt) return;
+        const y = height - 50 - (idx * 45);
+
+        // Calculate size dynamically
+        setFont(13, 'bold');
+        const textWidth = ctx.measureText(pt).width;
+        const badgeWidth = textWidth + 60; // 30px padding on each side
+        const badgeHeight = 32;
+
+        // Draw pill with translucent brand tint
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        ctx.beginPath();
+        ctx.roundRect(30, y - 16, badgeWidth, badgeHeight, 16);
+        ctx.fill();
+        
+        ctx.strokeStyle = 'rgba(250, 140, 22, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Draw an elegant small custom orange check circle
         ctx.fillStyle = '#fa8c16';
         ctx.beginPath();
-        ctx.roundRect(20, y - 25, 180, 35, 10);
+        ctx.arc(46, y, 7, 0, Math.PI * 2);
         ctx.fill();
-        setFont(18, 'bold');
-        drawText('✓ ' + pt, 110, y - 2, '#fff', 'center');
+
+        // White tick inside the circle
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(43, y);
+        ctx.lineTo(45, y + 2);
+        ctx.lineTo(49, y - 2);
+        ctx.stroke();
+
+        // Write selling point text
+        setFont(13, 'bold');
+        drawText(pt, 62, y + 4, '#ffffff');
       });
       break;
     }

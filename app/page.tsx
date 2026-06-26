@@ -348,7 +348,10 @@ export default function Page() {
         modelBase64 || null, 
         sceneBase64 || null, 
         analysis, 
-        config,
+        {
+          ...config,
+          isCustomScene: !!sceneBase64 && !selectedPresetId,
+        },
         userId,
         toolId
       );

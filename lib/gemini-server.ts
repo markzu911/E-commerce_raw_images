@@ -250,13 +250,17 @@ function buildPrompt(
 
     switch (type) {
       case 'detail':
-        basePrompt += `\nScene: Fabric and craftsmanship close-up detail shot. Dark grey monochrome background. Focus on original textures from reference.`;
+        basePrompt += `\nScene: A high-fashion multi-panel split-screen grid collage (such as a 2x2 grid or diptych layout) showing multiple professional macro close-up photography views of the garment's exquisite craftsmanship. One panel must zoom in on the beautiful fabric texture, weave pattern, and premium stitches; another panel showcases the collar/neckline construction; other panels focus on buttons, cuffs, or pockets. Unified, clean, high-end studio aesthetic on a minimal neutral grey or beige backdrop. Highlighting absolute quality and detail.`;
         break;
       case 'sellingPoint':
-        basePrompt += `\nScene: Morandi color portrait background (oatmeal/beige/milk tea). Clean and high-end studio lighting.`;
+        basePrompt += `\nScene: A premium commercial-grade fashion advertising hero poster. The model strikes an elegant, confident, and high-fashion editorial pose that beautifully highlights the garment's key value propositions: ${vars.selling_point_1}, ${vars.selling_point_2}, ${vars.selling_point_3}. The photo should emphasize the flattering fit, fluid drape, and premium comfort of the clothing. High-contrast studio lighting with elegant soft shadow definitions. Sophisticated Morandi color palette backdrop (warm oatmeal, soft sand, or light taupe) for a luxurious luxury-brand catalog aesthetic.`;
         break;
       case 'scene':
-        basePrompt += `\nScene: ${vars.scene_theme}. Professional fashion photography background. Keep scene details consistent if a scene reference is provided.`;
+        if (config.isCustomScene) {
+          basePrompt += `\nScene Backdrop: Replicate and maintain the layout, composition, architecture, and colors from the uploaded background reference image. Keep the background 100% consistent.`;
+        } else {
+          basePrompt += `\nScene Backdrop Theme: ${vars.scene_style || vars.scene_theme}. Professional high-end fashion photography location photoshoot, beautifully integrated with the model.`;
+        }
         break;
     }
   }
@@ -276,7 +280,8 @@ export async function generateImageServer(
 ): Promise<Buffer> {
   const ai = getGeminiClient();
   const hasModelImage = !!modelUrlBase64;
-  const hasSceneImage = !!sceneUrlBase64;
+  const isCustomScene = !!config.isCustomScene;
+  const hasSceneImage = !!sceneUrlBase64 && isCustomScene;
   
   let qualityBoost = '';
   if (config.resolution === '2k') {
@@ -314,10 +319,18 @@ export async function generateImageServer(
   }
   
   if (hasSceneImage && type === 'scene') {
-    prompt += `\nBackground MUST be 100% consistent with the aesthetic and environment of Reference Image ${sceneIndex}.`;
+    prompt += `\nBackground MUST be 100% consistent with the aesthetic, layout, and architecture of Reference Image ${sceneIndex}. Seamlessly blend the model/clothing inside with natural shadows, matching lighting, and perfect perspective scaling.`;
     parts.push({
       inlineData: extractParts(sceneUrlBase64!)
     });
+  } else if (type === 'scene') {
+    prompt += `
+  【PROFESSIONAL PHOTOGRAPHIC INTEGRATION STYLE】
+  - DO NOT flatly paste, overlay, or stitch the model/clothing onto a background image.
+  - The model and the background scene MUST be generated together as a single, coherent, professionally shot high-end fashion photograph.
+  - Setup correct 3D depth-of-field (DoF) and realistic lens focus: the model and garment should be perfectly in sharp focus, while the background details in the scene (${config.sceneStyle || 'professional photography studio'}) must show soft, elegant natural background blur (bokeh).
+  - Generate realistic soft shadows beneath and behind the model corresponding to the lighting source of the scene.
+  - Apply professional fashion photoshoot lighting: natural, cinematic, and harmonious light that wraps around the model and garment, with organic environment bounce lights and correct specular highlights.`;
   }
   
   // Add a final forceful instruction
