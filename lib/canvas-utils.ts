@@ -20,6 +20,10 @@ export function drawTextOverlay(
   const width = canvas.width;
   const height = canvas.height;
   
+  // Dynamic scale factor based on design base of 800px width
+  const baseWidth = 800;
+  const scale = width / baseWidth;
+  
   // Basic Text render setup
   const setFont = (fontSize: number, weight: string = 'normal') => {
     ctx.font = `${weight} ${fontSize}px "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif`;
@@ -32,74 +36,135 @@ export function drawTextOverlay(
     ctx.fillText(text, x, y);
   };
 
+  // Helper to draw a badge with centered text
+  const drawBadge = (text: string, x: number, y: number, w: number, h: number, bgColor: string, textColor: string, fontSize: number, weight: string = 'bold') => {
+    ctx.fillStyle = bgColor;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 6 * scale);
+    ctx.fill();
+    setFont(fontSize, weight);
+    ctx.fillStyle = textColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + w / 2, y + h / 2);
+    ctx.textBaseline = 'alphabetic'; // restore default
+  };
+
+  // Helper to draw multi-line wrapped text with ellipsis limit
+  const drawWrappedText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines: number, color: string, fontSize: number, weight: string = 'normal') => {
+    setFont(fontSize, weight);
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left';
+    
+    // Split into characters (works perfectly for both Chinese and English)
+    const words = text.split('');
+    let line = '';
+    let lines: string[] = [];
+    
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i];
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && i > 0) {
+        lines.push(line);
+        line = words[i];
+      } else {
+        line = testLine;
+      }
+    }
+    if (line) {
+      lines.push(line);
+    }
+    
+    // Limit to maxLines and add ellipsis if truncated
+    if (lines.length > maxLines) {
+      lines = lines.slice(0, maxLines);
+      if (lines.length > 0) {
+        const lastLine = lines[lines.length - 1];
+        if (lastLine.length > 3) {
+          lines[lines.length - 1] = lastLine.slice(0, -2) + '...';
+        }
+      }
+    }
+    
+    lines.forEach((l, idx) => {
+      ctx.fillText(l, x, y + (idx * lineHeight));
+    });
+    
+    return lines.length;
+  };
+
   switch (type) {
     case 'main': {
       // Bottom Gradient
-      const gradientBg = ctx.createLinearGradient(0, height - 150, 0, height);
+      const gradH = 180 * scale;
+      const gradientBg = ctx.createLinearGradient(0, height - gradH, 0, height);
       gradientBg.addColorStop(0, 'rgba(0,0,0,0)');
-      gradientBg.addColorStop(1, 'rgba(0,0,0,0.8)');
+      gradientBg.addColorStop(1, 'rgba(15, 23, 42, 0.9)');
       ctx.fillStyle = gradientBg;
-      ctx.fillRect(0, height - 150, width, 150);
+      ctx.fillRect(0, height - gradH, width, gradH);
       
       // Promo badge top left
-      ctx.fillStyle = '#ff4d4f';
-      ctx.fillRect(20, 20, 100, 40);
-      setFont(20, 'bold');
-      drawText(config.promoBadge, 70, 47, '#fff', 'center');
+      if (config.promoBadge) {
+        drawBadge(config.promoBadge, 30 * scale, 30 * scale, 120 * scale, 42 * scale, '#fa8c16', '#fff', 18 * scale, 'bold');
+      }
 
       // Title and price at bottom
-      setFont(36, 'bold');
-      drawText(config.mainTitle, 20, height - 60, '#fff');
-      setFont(24);
-      drawText(config.subTitle, 20, height - 30, '#ccc');
-      setFont(40, 'bold');
-      drawText(config.price, width - 20, height - 40, '#ff4d4f', 'right');
+      setFont(32 * scale, 'bold');
+      drawText(config.mainTitle, 30 * scale, height - 75 * scale, '#fff');
+      
+      setFont(16 * scale);
+      drawText(config.subTitle, 30 * scale, height - 40 * scale, '#ccc');
+      
+      setFont(36 * scale, 'bold');
+      drawText(config.price, width - 30 * scale, height - 55 * scale, '#fa8c16', 'right');
       break;
     }
     case 'detail': {
       // 1. Elegant Top-Left Designer Badge
-      const badgeW = 160;
-      const badgeH = 40;
+      const badgeW = 160 * scale;
+      const badgeH = 42 * scale;
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.beginPath();
-      ctx.roundRect(30, 30, badgeW, badgeH, 12);
+      ctx.roundRect(30 * scale, 30 * scale, badgeW, badgeH, 12 * scale);
       ctx.fill();
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1 * scale;
       ctx.stroke();
 
-      setFont(12, 'bold');
-      drawText('DETAIL SHOTS', 30 + (badgeW / 2), 48, '#fa8c16', 'center');
-      setFont(10, 'normal');
-      drawText('• 细节展示', 30 + (badgeW / 2), 62, '#fff', 'center');
+      setFont(11 * scale, 'bold');
+      drawText('DETAIL SHOTS', 30 * scale + (badgeW / 2), 48 * scale, '#fa8c16', 'center');
+      setFont(9 * scale, 'normal');
+      drawText('• 细节展示', 30 * scale + (badgeW / 2), 62 * scale, '#fff', 'center');
 
       // 2. High-end Spec Sheet Card (Glassmorphism Sidebar Card)
-      const cardW = 260;
-      const cardH = 320;
-      const cardX = width - cardW - 30;
+      const cardW = 280 * scale;
+      const cardH = 340 * scale;
+      const cardX = width - cardW - 30 * scale;
       const cardY = (height - cardH) / 2;
 
       // Card Background
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.beginPath();
-      ctx.roundRect(cardX, cardY, cardW, cardH, 24);
+      ctx.roundRect(cardX, cardY, cardW, cardH, 24 * scale);
       ctx.fill();
+      
       // Card subtle border
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1.5 * scale;
       ctx.stroke();
 
       // Card Header
-      setFont(10, 'bold');
+      setFont(10 * scale, 'bold');
       ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.textAlign = 'left';
-      ctx.fillText('GARMENT SPECIFICATIONS', cardX + 24, cardY + 36);
+      ctx.fillText('GARMENT SPECIFICATIONS', cardX + 24 * scale, cardY + 36 * scale);
 
       // Card Divider Line
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1 * scale;
       ctx.beginPath();
-      ctx.moveTo(cardX + 24, cardY + 48);
-      ctx.lineTo(cardX + cardW - 24, cardY + 48);
+      ctx.moveTo(cardX + 24 * scale, cardY + 48 * scale);
+      ctx.lineTo(cardX + cardW - 24 * scale, cardY + 48 * scale);
       ctx.stroke();
 
       // Detail specs
@@ -107,110 +172,123 @@ export function drawTextOverlay(
       const defaultInfo = ['匠心剪裁', '高端用料', '典雅风范', '四季通用'];
       
       for (let i = 0; i < 4; i++) {
-        const itemY = cardY + 75 + (i * 60);
+        const itemY = cardY + 70 * scale + (i * 62 * scale);
         const valueText = config.detailInfo[i] || defaultInfo[i];
 
         // Label
-        setFont(9, 'bold');
+        setFont(9 * scale, 'bold');
         ctx.fillStyle = '#fa8c16';
         ctx.textAlign = 'left';
-        ctx.fillText(labels[i], cardX + 24, itemY);
+        ctx.fillText(labels[i], cardX + 24 * scale, itemY);
 
-        // Value text
-        setFont(14, 'bold');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(valueText.length > 18 ? valueText.slice(0, 17) + '...' : valueText, cardX + 24, itemY + 22);
+        // Value text (use drawWrappedText)
+        const textMaxW = cardW - 48 * scale;
+        const textY = itemY + 18 * scale;
+        drawWrappedText(
+          valueText, 
+          cardX + 24 * scale, 
+          textY, 
+          textMaxW, 
+          16 * scale, // line height
+          2,          // max lines
+          '#ffffff', 
+          13 * scale, // font size
+          'bold'
+        );
       }
       break;
     }
     case 'sellingPoint': {
       // 1. Premium Lookbook Header overlay at the top (Modern magazine format)
       // Subtle background scrim
-      const scrim = ctx.createLinearGradient(0, 0, 0, 160);
+      const scrimH = 160 * scale;
+      const scrim = ctx.createLinearGradient(0, 0, 0, scrimH);
       scrim.addColorStop(0, 'rgba(15, 23, 42, 0.85)');
       scrim.addColorStop(1, 'rgba(15, 23, 42, 0)');
       ctx.fillStyle = scrim;
-      ctx.fillRect(0, 0, width, 160);
+      ctx.fillRect(0, 0, width, scrimH);
 
       // Title & Brand Label
-      setFont(11, 'bold');
-      drawText('PREMIUM BRAND CAMPAIGN', 30, 40, '#fa8c16');
+      setFont(11 * scale, 'bold');
+      drawText('PREMIUM BRAND CAMPAIGN', 30 * scale, 40 * scale, '#fa8c16');
       
-      setFont(28, 'bold');
-      drawText(config.mainTitle, 30, 78, '#ffffff');
+      setFont(26 * scale, 'bold');
+      drawText(config.mainTitle, 30 * scale, 78 * scale, '#ffffff');
 
       // Thin elegant separator line
-      ctx.strokeStyle = 'rgba(25fa, 140, 22, 0.3)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(250, 140, 22, 0.3)';
+      ctx.lineWidth = 1 * scale;
       ctx.beginPath();
-      ctx.moveTo(30, 96);
-      ctx.lineTo(180, 96);
+      ctx.moveTo(30 * scale, 96 * scale);
+      ctx.lineTo(180 * scale, 96 * scale);
       ctx.stroke();
 
-      setFont(11, 'normal');
-      drawText('EXCLUSIVE COMFORT & TIMELESS AESTHETIC', 30, 114, '#cccccc');
+      setFont(11 * scale, 'normal');
+      drawText('EXCLUSIVE COMFORT & TIMELESS AESTHETIC', 30 * scale, 114 * scale, '#cccccc');
 
       // 2. Sophisticated Bottom Pill Badges for Selling Points
       // Subtle bottom dark gradient
-      const bottomScrim = ctx.createLinearGradient(0, height - 180, 0, height);
+      const bottomScrimH = 180 * scale;
+      const bottomScrim = ctx.createLinearGradient(0, height - bottomScrimH, 0, height);
       bottomScrim.addColorStop(0, 'rgba(0,0,0,0)');
       bottomScrim.addColorStop(1, 'rgba(15, 23, 42, 0.75)');
       ctx.fillStyle = bottomScrim;
-      ctx.fillRect(0, height - 180, width, 180);
+      ctx.fillRect(0, height - bottomScrimH, width, bottomScrimH);
 
       config.sellingPointTexts.forEach((pt, idx) => {
         if (!pt) return;
-        const y = height - 50 - (idx * 45);
+        const y = height - 50 * scale - (idx * 45 * scale);
 
         // Calculate size dynamically
-        setFont(13, 'bold');
+        setFont(13 * scale, 'bold');
         const textWidth = ctx.measureText(pt).width;
-        const badgeWidth = textWidth + 60; // 30px padding on each side
-        const badgeHeight = 32;
+        const badgeWidth = textWidth + 50 * scale; // padding on each side
+        const badgeHeight = 32 * scale;
 
         // Draw pill with translucent brand tint
         ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
         ctx.beginPath();
-        ctx.roundRect(30, y - 16, badgeWidth, badgeHeight, 16);
+        ctx.roundRect(30 * scale, y - 16 * scale, badgeWidth, badgeHeight, 16 * scale);
         ctx.fill();
         
         ctx.strokeStyle = 'rgba(250, 140, 22, 0.6)';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.5 * scale;
         ctx.stroke();
 
         // Draw an elegant small custom orange check circle
         ctx.fillStyle = '#fa8c16';
         ctx.beginPath();
-        ctx.arc(46, y, 7, 0, Math.PI * 2);
+        ctx.arc(44 * scale, y, 7 * scale, 0, Math.PI * 2);
         ctx.fill();
 
         // White tick inside the circle
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.5 * scale;
         ctx.beginPath();
-        ctx.moveTo(43, y);
-        ctx.lineTo(45, y + 2);
-        ctx.lineTo(49, y - 2);
+        ctx.moveTo(41 * scale, y);
+        ctx.lineTo(43 * scale, y + 2 * scale);
+        ctx.lineTo(47 * scale, y - 2 * scale);
         ctx.stroke();
 
         // Write selling point text
-        setFont(13, 'bold');
-        drawText(pt, 62, y + 4, '#ffffff');
+        setFont(13 * scale, 'bold');
+        drawText(pt, 58 * scale, y + 4 * scale, '#ffffff');
       });
       break;
     }
     case 'scene': {
       // Bottom Gradient
-      const gradientBg = ctx.createLinearGradient(0, height - 200, 0, height);
+      const gradientH = 200 * scale;
+      const gradientBg = ctx.createLinearGradient(0, height - gradientH, 0, height);
       gradientBg.addColorStop(0, 'rgba(0,0,0,0)');
-      gradientBg.addColorStop(1, 'rgba(0,0,0,0.8)');
+      gradientBg.addColorStop(1, 'rgba(15, 23, 42, 0.85)');
       ctx.fillStyle = gradientBg;
-      ctx.fillRect(0, height - 200, width, 200);
+      ctx.fillRect(0, height - gradientH, width, gradientH);
 
-      setFont(48, 'bold');
-      drawText(config.sceneTitle, width / 2, height - 80, '#fff', 'center');
-      setFont(24);
-      drawText(config.sceneSubtitle, width / 2, height - 40, '#ccc', 'center');
+      setFont(32 * scale, 'bold');
+      drawText(config.sceneTitle, width / 2, height - 80 * scale, '#fff', 'center');
+      setFont(16 * scale);
+      drawText(config.sceneSubtitle, width / 2, height - 40 * scale, '#ccc', 'center');
       break;
     }
   }
