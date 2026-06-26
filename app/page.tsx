@@ -14,12 +14,86 @@ import { Loader2, Upload, Download, CheckCircle, Image as ImageIcon, Sparkles, M
 import { drawTextOverlay } from '@/lib/canvas-utils';
 
 const PRESET_SCENES = [
-  '都市街头 (Urban Street)',
-  '法式咖啡馆 (French Cafe)',
-  '海边度假 (Beach Resort)',
-  '极简影棚 (Minimal Studio)',
-  '自然治愈 (Nature Healing)',
+  {
+    id: 'nordic_living',
+    name: '北欧极简暖色家居',
+    styleText: '北欧极简暖雅原木家居，温和阳光柔和漫反射',
+    description: 'Nordic minimalist living room with warm natural afternoon sunlight, cozy elegant wooden furniture, cream white walls, aesthetic potted plants.',
+    previewUrl: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'urban_sunset',
+    name: '现代摩登都市街区',
+    styleText: '摩登都市奢华街区，温和日落逆光，现代时尚',
+    description: 'Modern luxury urban street at sunset, soft bokeh city lights, skyscrapers background, chic editorial fashion backdrop.',
+    previewUrl: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'french_manor',
+    name: '法式复古绿荫庄园',
+    styleText: '法式复古庄园绿茵庭院，斑驳树影，罗曼蒂克自然光影',
+    description: 'Romantic French retro chateau garden, stone walls draped in ivy, dappled sunlight filtering through green trees, vintage luxury style.',
+    previewUrl: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'marble_podium',
+    name: '大理石极简艺术展台',
+    styleText: '奢华大理石极简艺术展台，柔和冷暖对比光影，高级艺术感',
+    description: 'Sleek luxury marble minimalist podium, soft geometric shadows, museum-like atmospheric lighting, high-end showroom background.',
+    previewUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'beach_sunset',
+    name: '宁静金晖沙滩海景',
+    styleText: '金色落日余晖沙滩，温和波浪起伏，浪漫阳光海岸',
+    description: 'Golden hour sunset over a serene sandy beach, soft ocean waves reflecting warm pink and orange sky, coastal editorial aesthetic.',
+    previewUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    id: 'wabi_gallery',
+    name: '侘寂风微水泥美术馆',
+    styleText: '侘寂风微水泥艺术展馆，柔和漫反射自然采光，极简光影',
+    description: 'Elegant wabi-sabi concrete gallery, clean geometric shadows, micro-cement walls, soft diffused minimalist natural lighting.',
+    previewUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80',
+  }
 ];
+
+/**
+ * Convert a remote image URL to base64 by drawing it on a canvas.
+ * It uses crossOrigin = 'anonymous' so that CORS-enabled sites (like Unsplash) work.
+ */
+async function urlToBase64(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxDim = 1000;
+      let w = img.width;
+      let h = img.height;
+      if (w > h) {
+        if (w > maxDim) {
+          h *= maxDim / w;
+          w = maxDim;
+        }
+      } else {
+        if (h > maxDim) {
+          w *= maxDim / h;
+          h = maxDim;
+        }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => {
+      reject(new Error('无法加载场景预设图片，请检查网络或更换预设'));
+    };
+    img.src = url;
+  });
+}
 
 /**
  * Frontend image compression
@@ -59,6 +133,8 @@ export default function Page() {
   const [imageBase64, setImageBase64] = useState<string>(''); // Product image for smart mode
   const [modelBase64, setModelBase64] = useState<string>('');
   const [sceneBase64, setSceneBase64] = useState<string>('');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+  const [isPresetLoading, setIsPresetLoading] = useState<boolean>(false);
   const [customReferenceBase64, setCustomReferenceBase64] = useState<string>(''); // Reference for custom mode
   
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error' | 'loading' | null, content: string }>({ type: null, content: '' });
@@ -212,12 +288,47 @@ export default function Page() {
   const handleSceneUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setSelectedPresetId(''); // Clear preset ID on manual upload
     const reader = new FileReader();
     reader.onload = async (event) => {
       const compressed = await compressImage(event.target?.result as string);
       setSceneBase64(compressed);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handlePresetSceneSelect = async (presetId: string) => {
+    const preset = PRESET_SCENES.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    setIsPresetLoading(true);
+    setSelectedPresetId(presetId);
+    try {
+      const base64 = await urlToBase64(preset.previewUrl);
+      setSceneBase64(base64);
+      // Synchronize prompt inputs and configs
+      setConfig(prev => ({
+        ...prev,
+        sceneStyle: preset.styleText,
+      }));
+      if (analysis) {
+        setAnalysis(prev => prev ? {
+          ...prev,
+          sceneStyle: preset.styleText,
+          description: preset.description,
+        } : null);
+      }
+    } catch (err: any) {
+      console.error('Failed to load preset background:', err);
+      setStatusMsg({ type: 'error', content: `预设加载失败: ${err.message || err}` });
+    } finally {
+      setIsPresetLoading(false);
+    }
+  };
+
+  const handleClearScene = () => {
+    setSceneBase64('');
+    setSelectedPresetId('');
   };
 
   const handleGenerate = async () => {
@@ -562,23 +673,81 @@ export default function Page() {
                         )}
 
                         {selectedType === 'scene' && (
-                          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/30 transition-all group">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 block">背景参考 (Scene)</Label>
-                            {sceneBase64 ? (
-                              <div className="relative rounded-[24px] overflow-hidden group/img shadow-2xl">
-                                <img src={sceneBase64} className="w-full aspect-[4/5] object-cover" alt="Scene" />
-                                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[6px]">
-                                  <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={() => setSceneBase64('')}>更换参考</Button>
+                          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm hover:shadow-2xl hover:shadow-slate-200/30 transition-all space-y-6">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">背景参考 (Scene Reference)</Label>
+                              {selectedPresetId && (
+                                <span className="bg-amber-500/10 text-amber-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                  预设底片
+                                </span>
+                              )}
+                              {!selectedPresetId && sceneBase64 && (
+                                <span className="bg-primary/10 text-primary text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                  自定义上传
+                                </span>
+                              )}
+                            </div>
+                            
+                            {isPresetLoading ? (
+                              <div className="aspect-[4/5] flex flex-col items-center justify-center rounded-[28px] bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800">
+                                <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center px-4">正在载入预设底片...</span>
+                              </div>
+                            ) : sceneBase64 ? (
+                              <div className="space-y-4">
+                                <div className="relative rounded-[24px] overflow-hidden group/img shadow-2xl aspect-[4/5]">
+                                  <img src={sceneBase64} className="w-full h-full object-cover" alt="Scene" />
+                                  <div className="absolute inset-0 bg-black/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-[6px]">
+                                    <Button size="sm" variant="secondary" className="rounded-full font-black text-[10px] uppercase tracking-widest" onClick={handleClearScene}>清除底片</Button>
+                                  </div>
                                 </div>
+                                {selectedPresetId && (
+                                  <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl">
+                                    <p className="text-[11px] font-black text-slate-700 dark:text-slate-300">
+                                      {PRESET_SCENES.find(p => p.id === selectedPresetId)?.name}
+                                    </p>
+                                    <p className="text-[10px] font-medium text-slate-400 mt-1">
+                                      {PRESET_SCENES.find(p => p.id === selectedPresetId)?.styleText}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             ) : (
-                              <div 
-                                className="aspect-[4/5] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[28px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
-                                onClick={() => sceneInputRef.current?.click()}
-                              >
-                                <ImageIcon className="w-8 h-8 text-primary/40 mb-4" />
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center px-6">上传背景底片</span>
-                                <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
+                              <div className="space-y-6">
+                                {/* Preset Scenes Grid */}
+                                <div className="grid grid-cols-2 gap-4">
+                                  {PRESET_SCENES.map((preset) => (
+                                    <button
+                                      key={preset.id}
+                                      onClick={() => handlePresetSceneSelect(preset.id)}
+                                      className="relative rounded-2xl overflow-hidden aspect-[4/5] group border border-slate-100 dark:border-slate-800/50 hover:border-primary/40 shadow-sm hover:shadow-md transition-all text-left"
+                                    >
+                                      <img src={preset.previewUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={preset.name} />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+                                        <p className="text-[10px] font-black text-white tracking-wide">{preset.name}</p>
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+
+                                <div className="relative">
+                                  <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-slate-100 dark:border-slate-800" />
+                                  </div>
+                                  <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-white dark:bg-slate-900 px-3 text-[9px] font-black tracking-widest text-slate-400">或 / Or</span>
+                                  </div>
+                                </div>
+
+                                {/* Custom Upload Button */}
+                                <div 
+                                  className="py-8 border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center rounded-[28px] bg-slate-50/50 dark:bg-slate-950 transition-all hover:border-primary/40 hover:bg-slate-50 cursor-pointer" 
+                                  onClick={() => sceneInputRef.current?.click()}
+                                >
+                                  <Upload className="w-6 h-6 text-primary/40 mb-3" />
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center px-4">自定义上传背景</span>
+                                  <input type="file" ref={sceneInputRef} className="hidden" accept="image/*" onChange={handleSceneUpload} />
+                                </div>
                               </div>
                             )}
                           </div>

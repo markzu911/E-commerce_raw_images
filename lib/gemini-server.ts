@@ -142,7 +142,7 @@ export async function analyzeImageServer(imageBase64: string, type: string): Pro
   const typeDesc = typeMap[type] || '电商图片';
 
   const responsePromise = ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-3.5-flash',
     contents: {
       parts: [
         {
@@ -261,7 +261,7 @@ function buildPrompt(
     }
   }
 
-  basePrompt += '\\nCRITICAL: ABSOLUTELY NO TEXT, LOGOS (other than product ones), OR TYPOGRAPHY IN THE OUTPUT IMAGE.';
+  basePrompt += '\nCRITICAL: ABSOLUTELY NO TEXT, LOGOS (other than original product ones), OR TYPOGRAPHY IN THE OUTPUT IMAGE.';
   
   return basePrompt;
 }
@@ -321,12 +321,17 @@ export async function generateImageServer(
   }
   
   // Add a final forceful instruction
-  prompt += `\nFinal strict instruction: Keep the product/garment design from the reference image 100% unchanged and preserved down to every detail (collar, cuffs, buttons, seams, prints, patterns, pockets, and fabric texture must be perfectly identical). Do not reinterpret or simplify. Replicate it with absolute precision and fidelity on the model/scene.`;
+  prompt += `
+  【CRITICAL STYLE PRESERVATION MANDATE】
+  - Maintain 100% clothing shape, cut, pattern, fabric, and details.
+  - The generated garment MUST look identical to the reference product image down to the smallest detail (buttons, collars, stitching, pockets, pattern prints, and fabric texture).
+  - DO NOT alter the neckline style, sleeve length, hem, or overall fit. No simplification or reinterpretation of the product is allowed.
+  - 必须保持产品样式、剪裁、领口、袖子长度、下摆、纽扣、口袋及印花图案100%一致，绝对不要对商品做任何改变。`;
 
   parts.push({ text: prompt });
  
   const responsePromise = ai.models.generateContent({
-    model: 'gemini-3.1-flash-image-preview',
+    model: 'gemini-3.1-flash-image',
     contents: {
       parts
     },
@@ -391,7 +396,7 @@ export async function generateCustomImageServer(
   parts.push({ text: prompt });
   
   const responsePromise = ai.models.generateContent({
-    model: 'gemini-3.1-flash-image-preview',
+    model: 'gemini-3.1-flash-image',
     contents: {
       parts
     },
