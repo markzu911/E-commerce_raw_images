@@ -28,6 +28,44 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs = 120000, message =
   }
 }
 
+/**
+ * Executes an async function and retries on failure (especially 503 and 429).
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delayMs = 1500,
+  backoffFactor = 2
+): Promise<T> {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      attempt++;
+      const errorMessage = error?.message || String(error);
+      const isTransient = 
+        errorMessage.includes('503') || 
+        errorMessage.includes('UNAVAILABLE') || 
+        errorMessage.includes('429') || 
+        errorMessage.includes('RESOURCE_EXHAUSTED') || 
+        errorMessage.includes('504') || 
+        errorMessage.includes('timeout') ||
+        errorMessage.includes('Timeout') ||
+        errorMessage.includes('high demand');
+        
+      if (attempt > retries || !isTransient) {
+        throw error;
+      }
+      
+      const jitter = Math.random() * 300; // Add some jitter
+      const nextDelay = delayMs * Math.pow(backoffFactor, attempt - 1) + jitter;
+      console.warn(`Gemini API error (attempt ${attempt}/${retries}): ${errorMessage}. Retrying in ${Math.round(nextDelay)}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, nextDelay));
+    }
+  }
+}
+
 export async function generateVideoServer(
   imageBase64: string,
   analysis?: AnalysisData,
@@ -61,19 +99,23 @@ export async function generateVideoServer(
     5. NO WARPING OR MORPHING: Rigidly prevent any AI warping, structural melting, sudden texture changes, or distortion of the model, clothing, or scene. Smooth cinematic camera motion (e.g. slow zoom, gentle track).
     6. HIGH-FIDELITY LUXURY LIGHTING: Premium luxury studio lighting. No text, logos, or captions.`;
 
-  const operation = await ai.models.generateVideos({
-    model: 'veo-3.1-lite-generate-preview',
-    prompt: videoPrompt,
-    image: {
-      imageBytes: base64Data,
-      mimeType: mimeType,
-    },
-    config: {
-      numberOfVideos: 1,
-      resolution: '720p',
-      aspectRatio: '9:16'
-    }
-  });
+  const operation = await retryWithBackoff(() => 
+    ai.models.generateVideos({
+      model: 'veo-3.1-lite-generate-preview',
+      prompt: videoPrompt,
+      image: {
+        imageBytes: base64Data,
+        mimeType: mimeType,
+      },
+      config: {
+        numberOfVideos: 1,
+        resolution: '720p',
+        aspectRatio: '9:16'
+      }
+    }),
+    2,
+    2000
+  );
 
   if (!operation.name) {
     throw new Error('Failed to start video generation operation: No operation name returned');
@@ -87,7 +129,11 @@ export async function getVideoStatusServer(operationName: string): Promise<{ don
   const op = new GenerateVideosOperation();
   op.name = operationName;
   
-  const updated = await ai.operations.getVideosOperation({ operation: op });
+  const updated = await retryWithBackoff(() => 
+    ai.operations.getVideosOperation({ operation: op }),
+    2,
+    1000
+  );
   
   if (updated.error) {
     return { done: true, error: (updated.error as any).message || '视频生成出错' };
@@ -101,7 +147,11 @@ export async function downloadVideoServer(operationName: string, rangeHeader?: s
   const op = new GenerateVideosOperation();
   op.name = operationName;
   
-  const updated = await ai.operations.getVideosOperation({ operation: op });
+  const updated = await retryWithBackoff(() => 
+    ai.operations.getVideosOperation({ operation: op }),
+    2,
+    1000
+  );
   const uri = updated.response?.generatedVideos?.[0]?.video?.uri;
   
   if (!uri) {
@@ -128,80 +178,103 @@ export async function downloadVideoServer(operationName: string, rangeHeader?: s
 }
 
 export async function analyzeImageServer(imageBase64: string, type: string): Promise<AnalysisData> {
-  const ai = getGeminiClient();
-  
-  const base64Data = imageBase64.split(',')[1];
-  const mimeType = imageBase64.split(',')[0].split(':')[1].split(';')[0];
+  const performAnalysis = async (modelName: string) => {
+    const ai = getGeminiClient();
+    const base64Data = imageBase64.split(',')[1];
+    const mimeType = imageBase64.split(',')[0].split(':')[1].split(';')[0];
 
-  const typeMap: Record<string, string> = {
-    main: '商品主图（纯白底展示单品）',
-    detail: '商品详情图（展示面料、细节）',
-    sellingPoint: '卖点图（有模特，提炼商品优势）',
-    scene: '场景图（有模特，展示衣服在真实环境中的上身效果）'
-  };
-  const typeDesc = typeMap[type] || '电商图片';
+    const typeMap: Record<string, string> = {
+      main: '商品主图（纯白底展示单品）',
+      detail: '商品详情图（展示面料、细节）',
+      sellingPoint: '卖点图（有模特，提炼商品优势）',
+      scene: '场景图（有模特，展示衣服在真实环境中的上身效果）'
+    };
+    const typeDesc = typeMap[type] || '电商图片';
 
-  const responsePromise = ai.models.generateContent({
-    model: 'gemini-3.5-flash',
-    contents: {
-      parts: [
-        {
-          inlineData: {
-            data: base64Data,
-            mimeType: mimeType,
+    const responsePromise = ai.models.generateContent({
+      model: modelName,
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType: mimeType,
+            },
           },
-        },
-        {
-          text: `为电商商品详情分析这张服装图片。用户当前需要生成一张【${typeDesc}】。**请务必使用中文（简体中文）输出结果。** 请重点关注与【${typeDesc}】相关的特征来提取以下详细信息：
-          - productName (10个字符以内的商品名称)
-          - category (如：连衣裙、卫衣、西装外套)
-          - style (如：简约都市、法式浪漫)
-          - colors (主要和次要颜色的数组，用中文描述)
-          - materials (面料描述，如纯棉、丝绸)
-          - season (适合的季节，如春夏、秋冬)
-          - description (50-80字的中文商品描述)
-          - sellingPoints (正好4个简短的中文卖点数组)
-          - targetAudience (目标人群描述，中文)
-          - keywords (正好5个搜索关键词数组，中文)
-          - modelStyle (推荐的模特气质/风格，中文)
-          - sceneStyle (推荐拍摄的背景/场景风格，中文)
-          - brandName (如果没有明显的品牌名请留空)
-          - posterTheme (推荐的主图海报主题，中文)`
-        }
-      ]
-    },
-    config: {
-      responseMimeType: 'application/json',
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          productName: { type: Type.STRING },
-          category: { type: Type.STRING },
-          style: { type: Type.STRING },
-          colors: { type: Type.ARRAY, items: { type: Type.STRING } },
-          materials: { type: Type.STRING },
-          season: { type: Type.STRING },
-          description: { type: Type.STRING },
-          sellingPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
-          targetAudience: { type: Type.STRING },
-          keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
-          modelStyle: { type: Type.STRING },
-          sceneStyle: { type: Type.STRING },
-          brandName: { type: Type.STRING },
-          posterTheme: { type: Type.STRING },
-        },
-        required: [
-          "productName", "category", "style", "colors", "materials",
-          "season", "description", "sellingPoints", "targetAudience",
-          "keywords", "modelStyle", "sceneStyle", "brandName", "posterTheme"
+          {
+            text: `为电商商品详情分析这张服装图片。用户当前需要生成一张【${typeDesc}】。**请务必使用中文（简体中文）输出结果。** 请重点关注与【${typeDesc}】相关的特征来提取以下详细信息：
+            - productName (10个字符以内的商品名称)
+            - category (如：连衣裙、卫衣、西装外套)
+            - style (如：简约都市、法式浪漫)
+            - colors (主要和次要颜色的数组，用中文描述)
+            - materials (面料描述，如纯棉、丝绸)
+            - season (适合的季节，如春夏、秋冬)
+            - description (50-80字的中文商品描述)
+            - sellingPoints (正好4个简短的中文卖点数组)
+            - targetAudience (目标人群描述，中文)
+            - keywords (正好5个搜索关键词数组，中文)
+            - modelStyle (推荐的模特气质/风格，中文)
+            - sceneStyle (推荐拍摄的背景/场景风格，中文)
+            - brandName (如果没有明显的品牌名请留空)
+            - posterTheme (推荐的主图海报主题，中文)`
+          }
         ]
+      },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            productName: { type: Type.STRING },
+            category: { type: Type.STRING },
+            style: { type: Type.STRING },
+            colors: { type: Type.ARRAY, items: { type: Type.STRING } },
+            materials: { type: Type.STRING },
+            season: { type: Type.STRING },
+            description: { type: Type.STRING },
+            sellingPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
+            targetAudience: { type: Type.STRING },
+            keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+            modelStyle: { type: Type.STRING },
+            sceneStyle: { type: Type.STRING },
+            brandName: { type: Type.STRING },
+            posterTheme: { type: Type.STRING },
+          },
+          required: [
+            "productName", "category", "style", "colors", "materials",
+            "season", "description", "sellingPoints", "targetAudience",
+            "keywords", "modelStyle", "sceneStyle", "brandName", "posterTheme"
+          ]
+        }
       }
-    }
-  });
-  
-  const result = await withTimeout(responsePromise);
+    });
 
-  return JSON.parse(result.text!) as AnalysisData;
+    const result = await withTimeout(responsePromise);
+    return result;
+  };
+
+  try {
+    // Try the preferred model (gemini-3.5-flash) first with backoff retry
+    const result = await retryWithBackoff(
+      () => performAnalysis('gemini-3.5-flash'),
+      2, // 2 retries
+      1500
+    );
+    return JSON.parse(result.text!) as AnalysisData;
+  } catch (error: any) {
+    console.warn(`Primary analysis model gemini-3.5-flash failed or experienced high demand. Trying fallback model gemini-3.1-flash-lite...`);
+    try {
+      const fallbackResult = await retryWithBackoff(
+        () => performAnalysis('gemini-3.1-flash-lite'),
+        2, // 2 retries on fallback
+        1500
+      );
+      return JSON.parse(fallbackResult.text!) as AnalysisData;
+    } catch (fallbackError: any) {
+      const errMsg = fallbackError?.message || String(fallbackError);
+      throw new Error(`分析商品图片失败 (模型繁忙): ${errMsg}。请稍后再试或更换图片重试。`);
+    }
+  }
 }
 
 function buildPrompt(
@@ -278,7 +351,6 @@ export async function generateImageServer(
   analysis: AnalysisData,
   config: PromptConfig
 ): Promise<Buffer> {
-  const ai = getGeminiClient();
   const hasModelImage = !!modelUrlBase64;
   const isCustomScene = !!config.isCustomScene;
   const hasSceneImage = !!sceneUrlBase64 && isCustomScene;
@@ -343,30 +415,55 @@ export async function generateImageServer(
 
   parts.push({ text: prompt });
  
-  const responsePromise = ai.models.generateContent({
-    model: 'gemini-3.1-flash-image',
-    contents: {
-      parts
-    },
-    config: {
-      imageConfig: {
-        aspectRatio: config?.aspectRatio || '3:4',
+  const performGeneration = async (modelName: string) => {
+    const ai = getGeminiClient();
+    const responsePromise = ai.models.generateContent({
+      model: modelName,
+      contents: {
+        parts
       },
-      safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-      ]
+      config: {
+        imageConfig: {
+          aspectRatio: config?.aspectRatio || '3:4',
+        },
+        safetySettings: [
+          { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        ]
+      }
+    });
+    return await withTimeout(responsePromise);
+  };
+
+  try {
+    const response = await retryWithBackoff(
+      () => performGeneration('gemini-3.1-flash-image'),
+      2,
+      1500
+    );
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData?.data) {
+        return Buffer.from(part.inlineData.data, 'base64');
+      }
     }
-  });
-
-  const response = await withTimeout(responsePromise);
-
-  // Extract base64 image from response
-  for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData?.data) {
-      return Buffer.from(part.inlineData.data, 'base64');
+  } catch (error: any) {
+    console.warn(`Primary image model gemini-3.1-flash-image failed or experienced high demand. Trying fallback model gemini-2.5-flash-image...`);
+    try {
+      const fallbackResponse = await retryWithBackoff(
+        () => performGeneration('gemini-2.5-flash-image'),
+        2,
+        1500
+      );
+      for (const part of fallbackResponse.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData?.data) {
+          return Buffer.from(part.inlineData.data, 'base64');
+        }
+      }
+    } catch (fallbackError: any) {
+      const errMsg = fallbackError?.message || String(fallbackError);
+      throw new Error(`AI 绘图失败 (模型繁忙): ${errMsg}。请稍后重试。`);
     }
   }
 
@@ -378,7 +475,6 @@ export async function generateCustomImageServer(
   referenceImageBase64: string | null,
   config?: any
 ): Promise<Buffer> {
-  const ai = getGeminiClient();
   const extractParts = (b64: string) => {
     return {
       mimeType: b64.split(',')[0].split(':')[1].split(';')[0],
@@ -387,6 +483,7 @@ export async function generateCustomImageServer(
   };
 
   const parts: any[] = [];
+  let adjustedPrompt = prompt;
   if (referenceImageBase64) {
     parts.push({
       inlineData: extractParts(referenceImageBase64)
@@ -400,37 +497,63 @@ export async function generateCustomImageServer(
       qualityPrompt = '[QUALITY: 4K Ultra HD, masterpiece, 16k resolution, hyper-realistic, raw photo, intricate textures, sharp focus, cinematic lighting]. ';
     }
 
-    prompt = `CRITICAL TASK: Maintain 100% identity, style, and fidelity of the product shown in the reference image. 
+    adjustedPrompt = `CRITICAL TASK: Maintain 100% identity, style, and fidelity of the product shown in the reference image. 
     1. DO NOT change the product's design, style, shape, cuts, neckline, sleeve length, pockets, buttons, patterns, fabric, color, or details. The product must remain completely invariant and identical.
     2. Place this EXACT and UNCHANGED product into the following creative context: ${qualityPrompt}${prompt}.
     3. The lighting and environment should naturally interact with the product without altering its inherent design.
     4. Pose variety is encouraged if there is a model, but the model's identity and the product's look must remain stable.`;
   }
-  parts.push({ text: prompt });
-  
-  const responsePromise = ai.models.generateContent({
-    model: 'gemini-3.1-flash-image',
-    contents: {
-      parts
-    },
-    config: {
-      imageConfig: {
-        aspectRatio: config?.aspectRatio || '3:4',
+  parts.push({ text: adjustedPrompt });
+
+  const performGeneration = async (modelName: string) => {
+    const ai = getGeminiClient();
+    const responsePromise = ai.models.generateContent({
+      model: modelName,
+      contents: {
+        parts
       },
-      safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-      ]
+      config: {
+        imageConfig: {
+          aspectRatio: config?.aspectRatio || '3:4',
+        },
+        safetySettings: [
+          { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        ]
+      }
+    });
+    return await withTimeout(responsePromise);
+  };
+
+  try {
+    const response = await retryWithBackoff(
+      () => performGeneration('gemini-3.1-flash-image'),
+      2,
+      1500
+    );
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData?.data) {
+        return Buffer.from(part.inlineData.data, 'base64');
+      }
     }
-  });
-
-  const response = await withTimeout(responsePromise);
-
-  for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData?.data) {
-      return Buffer.from(part.inlineData.data, 'base64');
+  } catch (error: any) {
+    console.warn(`Primary custom image model gemini-3.1-flash-image failed or experienced high demand. Trying fallback model gemini-2.5-flash-image...`);
+    try {
+      const fallbackResponse = await retryWithBackoff(
+        () => performGeneration('gemini-2.5-flash-image'),
+        2,
+        1500
+      );
+      for (const part of fallbackResponse.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData?.data) {
+          return Buffer.from(part.inlineData.data, 'base64');
+        }
+      }
+    } catch (fallbackError: any) {
+      const errMsg = fallbackError?.message || String(fallbackError);
+      throw new Error(`AI 绘图失败 (模型繁忙): ${errMsg}。请稍后重试。`);
     }
   }
 
